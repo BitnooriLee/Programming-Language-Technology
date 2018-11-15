@@ -6,30 +6,29 @@ terminator Def "" ;
 
 -- Definitions
 DefFun. 	Def				::= TypeC Id "(" [Arg] ")" Body ;
-DefFun2. 	Def				::= TypeC Id "(" TypeC ")" ";" ;
+--DefFun2. 	Def				::= TypeC Id "(" TypeC ")" ";" ;
+DefFun3. 	Def				::= TypeC [Ass]";";
 DefUsing.	Def				::= "using" QConst ";" ; --2
-DefTypedef.	Def				::= "typedef" Id  Id ";" ; --2
+DefTypedef.	Def				::= "typedef" TypeC  Id ";" ; --2
 
-separator	Arg "," ;
 
 ADel. 		Arg				::= TypeC ;
 ADecl. 		Arg				::= TypeC Id ;
---Aref.		Arg				::= "*" Id;
+Aref.		Arg				::= "*" Id;
 
+separator	Arg "," ;
 
 -- Statements
 
-SDecl. 		Stm				::= TypeC Id ";" ;
-SDecls. 		Stm				::= TypeC Id "," [Id] ";" ;
-SInit. 		Stm				::= TypeC Id "=" Exp ";" ;
-SInit2. 		Stm				::= TypeC Id "=" Exp "," Id "=" Exp ";" ;  --2
+SInit. 		Stm				::= TypeC [Ass] ";" ;
 SReturn. 	Stm				::= "return" Exp ";" ;
 SWhile. 		Stm			    	::= "while" "(" Exp ")" Stm ;
 SWhile2. 	Stm			    	::= "while" "(" Exp ")" ";" ;
 SBlock. 		Stm				::= "{" [Stm] "}" ;
 SIf. 			Stm				::= "if" "(" Exp ")" Stm ;
 SIfElse. 		Stm				::= "if" "(" Exp ")" Stm "else" Stm ;
-SFor.		Stm				::= "for" "(" Stm Exp ";" Exp")" Stm;
+SFor.		Stm				::= "for" "(" TypeC Ass ";" Exp ";" Exp")" Stm;
+SDowh.		Stm				::="do"Stm"while" "("Exp")" ";";
 STypeDef.	Stm				::= "typedef" TypeC Id ";" ;
 SExp.		Stm				::= Exp ";" ;
 terminator 	Stm "" ;
@@ -46,18 +45,18 @@ EString.		Exp15			::= [String] ;
 EChar.		Exp15			::= Char ;
 ETrue. 		Exp15			::= "true" ;
 EFalse. 		Exp15		    	::= "false" ;
-EId. 		Exp15			::= Id ;
-EApp. 		Exp15			::= Id "(" [Exp] ")" ;
-EQConst.    	Exp15			::= QConst ;				-- 1
+EQConst.    	Exp15			::= QConst ;
+
+EApp. 		Exp14			::= Exp14 "(" [Exp] ")" ;-- 1
 EIndex.		Exp14			::= Exp14 "["Exp"]" ;		-- 2
 EProj.		Exp14			::= Exp14 "." Exp15 ;
-EProj2.		Exp14			::= Exp15 "->" Exp14 ;
-EPIncr. 		Exp14		    	::= Exp15 "++" ;
-EPDecr. 	Exp14			::= Exp15 "--" ;
-EIncr. 		Exp13			::= "++" Exp14 ;
-EDecr. 		Exp13			::= "--" Exp14 ;
-EPoint.		Exp13			::= "*" Id;   --2   Id??
-ENot.		Exp13			::= "!" Exp14;
+EProj2.		Exp14			::= Exp14 "->" Exp15 ;
+EPIncr. 		Exp14		    	::= Exp14 "++" ;
+EPDecr. 	Exp14			::= Exp14 "--" ;
+EIncr. 		Exp13			::= "++" Exp13 ;
+EDecr. 		Exp13			::= "--" Exp13 ;
+EPoint.		Exp13			::= "*" Exp13;   --2   Id??
+ENot.		Exp13			::= "!" Exp13;
 ERem	. 	Exp12			::= Exp12 "%" Exp13 ;
 ETimes. 	Exp12			::= Exp12 "*" Exp13 ;
 EDiv. 		Exp12			::= Exp12 "/" Exp13 ;
@@ -101,8 +100,7 @@ Tdouble. 	Type		::= "double" ;
 Tint. 		Type		::= "int" ;
 Tvoid. 		Type		::= "void" ;
 Tchar.		Type		::= "char" ;
-Tconst.		Type		::= "const";
-Tstring.		Type	    	::= Id ;  --2
+--Tstring.		Type	    	::= Id ;  --2
 TQconst. 	Type		::= QConst ;
 
 
@@ -112,6 +110,13 @@ Tconst2.	TypeC		::= "const" Type"&" ;
 Tref1.		TypeC		::= Type;
 
 
+
+--Help function???
+
+Hint.		Ass			::=Id;
+Hintstm.		Ass			::=Id"="Exp;
+
+separator	nonempty Ass "," ;
 
 token Id (letter (letter | digit | '_' )*) ;
 separator nonempty Id "," ;
