@@ -1,41 +1,57 @@
+-- | Lab 2: type checker and interpreter for C--.
+
 import System.Environment (getArgs)
-import System.Exit (exitFailure)
+import System.Exit        (exitFailure)
 
-import CPP.Lex
-import CPP.Par
-import CPP.ErrM
+import CPP.Abs            (Program)
+import CPP.Par            (pProgram, myLexer)
+import CPP.ErrM           (Err(Ok,Bad))
 
-import TypeChecker
-import Interpreter
+import TypeChecker        (typecheck)
+import Interpreter        (interpret)
 
--- | Parse, type check, and interpret a program given by the @String@.
+-- | Main: read file passed by only command line argument,
+--   parse as C-- code, type check, and interpret.
 
---Monad set of types???
+main :: IO ()
+main = do
+  args <- getArgs
+  case args of
+    [file] -> readFile file >>= parse >>= check >>= interpret
+    _      -> do
+      putStrLn "Usage: lab2 <SourceFile>"
+      exitFailure
 
-check :: String -> IO ()  --base name(Type)...printing or recieving input ??
-check s = do
+-- | Parse, file contents as C-- program.
+
+parse :: String -> IO Program
+parse s = do
   case pProgram (myLexer s) of
     Bad err  -> do
       putStrLn "SYNTAX ERROR"
       putStrLn err
       exitFailure
-    Ok  tree -> do
-      case typecheck tree of
-        Bad err -> do
-          putStrLn "TYPE ERROR"
-          putStrLn err
-          exitFailure
-        Ok _ -> interpret tree
+    Ok  tree -> return tree
 
--- | Main: read file passed by only command line argument and call 'check'.
+-- | Type check C-- abstract syntax tree.
 
-main :: IO ()
-main = do
-  args <- getArgs -- extract monad and get the value
-  case args of
-    [file] -> (readFile file) >>= check -- >>= Bind operator, Monad m => m a -> (a -> m b) -> m b
-    _      -> do
-      putStrLn "Usage: lab2 <SourceFile>"
+check :: Program -> IO Program
+check tree = do
+  case typecheck tree of
+    Bad err -> do
+      putStrLn "TYPE ERROR"
+      putStrLn err
       exitFailure
+    Ok _ -> return tree
+
+interpret :: Program-> IO Program
+interpret tree = do
+       case interpret tree of
+           Bad err -> do
+               putStrLn "VALUE ERROR"
+               putStrLn err
+               exitFailure
+           OK _ -> return tree
+           
 
 
