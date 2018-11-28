@@ -1,17 +1,57 @@
 module TypeChecker where
 
 import Control.Monad
+import Control.Monad.Except
+import Control.Monad.Reader
+import Control.Monad.State
 
+import Data.Functor
+import Data.Maybe
 import Data.Map (Map)
 import qualified Data.Map as Map
+import qualified Data.Set as Set
 
 import CPP.Abs
-import CPP.Print
-import CPP.ErrM
+import CPP.Print        (printTree)
+import CPP.ErrM        (Err(Ok,Bad))
 
+type Sig               = Map Id FunType
+data FunType           = FunType { funRet :: Type, fucPars :: [Type] }
 
+data St = St
+     { stCxt :: Cxt
+     , stRet :: Type
+     }
+
+type Cxt = [Block]
+type Block = Map Id Type
+
+type TypeError = String
+
+type Check = ReaderT Sig (StateT St (Except TypeError))
+
+builtin :: [(Id, FunType)]
+builtin =
+        [ (Id "readInt"                  , FunType Type_int      [])
+        , (Id "readDouble"         , FunType Type_double [])
+        , (Id "printInt"                  , FunType Type_void [Type_int])
+        , (id "printDouble"          , FunType Type_void [Type_double])
+        ]
+        
 typecheck :: Program -> Err ()
-typecheck p = return ()
+typecheck prg@(PDefs defs) = do
+          let sig = builtin ++ map mkF defs
+               mkF (DFun  t  f   arg _ss) = ( f, FunType t $ map (\ (ADecl t _) -> t) args)
+          --Check for duplicate function definitions.
+          --TODO ! 
+          let st = undefined
+          case runExcept (evalStateT    (runReaderT (checkProgram prg) $ Map.fromList sig) st) of
+               Left s -> Bad s
+               Right () -> return ()
+
+checkProgram :: Program -> Check ()
+checkProgram (PDefs defs) = do
+             mapM
 
 
 
@@ -102,25 +142,32 @@ printTree :: a -> String
 
 checkExp :: Env -> Type -> Exp -> Err ()
 checkExp env typ exp = do
-typ2 <- inferExp env exp
-if (typ2 = typ) then
-return ()
-else
-fail $ "type of " ++ printTree exp ++
-"expected " ++ printTree typ ++
-"but found " ++ printTree typ2
+         typ2 <- inferExp env exp
+         if (typ2 == typ) then
+                  return ()
+            else
+                  fail $         "type of " ++ printTree exp ++
+                                   "expected " ++ printTree typ ++
+                                   "but found " ++ printTree typ2
 
 checkStm :: Env -> Type -> Stm -> Err Env
 checkStm env val x = case x of
+         SExp exp -> do
+              inferExp env exp
+              return env
+         SDecl typ x ->
+              updateVar env id typ
+         SWhile exp stm -> do
+                checkExp env Type_bool exp
+                checkStm env val stm
 
-SExp exp -> do
-inferExp env exp
-return env
-SDecl typ x ->
-updateVar env id typ
-SWhile exp stm -> do
-checkExp env Type_bool exp
-checkStm env val stm
+checkStm :: Env -> [Stm] -> Err Env
+checkStms env stms = case stms of
+         []  -> return env
+         x : rest -> do
+           env' <- checkStm env x
+           checkStms env' rest                  -- check env' rest
+           
 
 
 
