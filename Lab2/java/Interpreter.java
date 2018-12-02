@@ -85,7 +85,7 @@ public class Interpreter {
     public Void visit(CPP.Absyn.SReturn p, Void arg)
     { /* Code For SReturn Goes Here */
       Value v = p.exp_.accept(new ExpVisitor(), arg);
-      throw new ReturnException (v);
+      return v;
     }
     public Void visit(CPP.Absyn.SWhile p, Void arg)
     { /* Code For SWhile Goes Here */
@@ -114,11 +114,11 @@ public class Interpreter {
   {
     public Value visit(CPP.Absyn.ETrue p, Void arg)
     { /* Code For ETrue Goes Here */
-      throw new TypeException ("not yet implemented");
+       return new VBool(true);
     }
     public Value visit(CPP.Absyn.EFalse p, Void arg)
     { /* Code For EFalse Goes Here */
-      throw new TypeException ("not yet implemented");
+      return new VBool(false);
     }
     public Value visit(CPP.Absyn.EInt p, Void arg)
     { /* Code For EInt Goes Here */
@@ -126,8 +126,7 @@ public class Interpreter {
     }
     public Value visit(CPP.Absyn.EDouble p, Void arg)
     { /* Code For EDouble Goes Here */
-      //p.double_;
-      throw new TypeException ("not yet implemented");
+      return VDouble(p.double_);
     }
     public Value visit(CPP.Absyn.EId p, Void arg)
     {
@@ -160,87 +159,148 @@ public class Interpreter {
     }
     public Value visit(CPP.Absyn.EPostDecr p, Void arg)
     { /* Code For EPostDecr Goes Here */
-      throw new TypeException ("not yet implemented");
+      Value v  = lookupVar (p.id_);
+      Value v1 = decrement (v);
+      assignVar (p.id_, v1);
+      return v;
     }
     public Value visit(CPP.Absyn.EPreIncr p, Void arg)
     { /* Code For EPreIncr Goes Here */
-      throw new TypeException ("not yet implemented");
+      Value v  = lookupVar (p.id_);
+      Value v1 = increment (v);
+      assignVar (p.id_, v1);
+      return v1;
     }
     public Value visit(CPP.Absyn.EPreDecr p, Void arg)
     { /* Code For EPreDecr Goes Here */
-      throw new TypeException ("not yet implemented");
+      Value v  = lookupVar (p.id_);
+      Value v1 = decrement (v);
+      assignVar (p.id_, v1);
+      return v1;
     }
     public Value visit(CPP.Absyn.ETimes p, Void arg)
     { /* Code For ETimes Goes Here */
-      p.exp_1.accept(new ExpVisitor(), arg);
-      p.exp_2.accept(new ExpVisitor(), arg);
-      throw new TypeException ("not yet implemented");
+      Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
+      Value v2 = p.exp_2.accept(new ExpVisitor(), arg);
+      if (v1 instanceof VInt) {
+        return new VInt(((VInt)v1).value * ((VInt)v2).value);
+      } else if(v1 instanceof VDouble) {
+        return new VDouble(((VDouble)v1).value * ((VDouble)v2).value);
+      } else throw new TypeException ("value should be a numeric type");
     }
     public Value visit(CPP.Absyn.EDiv p, Void arg)
     { /* Code For EDiv Goes Here */
-      p.exp_1.accept(new ExpVisitor(), arg);
-      p.exp_2.accept(new ExpVisitor(), arg);
-      throw new TypeException ("not yet implemented");
+      Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
+      Value v2 = p.exp_2.accept(new ExpVisitor(), arg);
+      if (v1 instanceof VInt) {
+        return new VInt(((VInt)v1).value /((VInt)v2).value);
+      } else if(v1 instanceof VDouble) {
+        return new VDouble(((VDouble)v1).value / ((VDouble)v2).value);
+      } else throw new TypeException ("value should be a numeric type");
     }
     public Value visit(CPP.Absyn.EPlus p, Void arg)
     { /* Code For EPlus Goes Here */
-      p.exp_1.accept(new ExpVisitor(), arg);
-      p.exp_2.accept(new ExpVisitor(), arg);
-      throw new TypeException ("not yet implemented");
+      Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
+      Value v2 = p.exp_2.accept(new ExpVisitor(), arg);
+      if (v1 instanceof VInt) {
+        return new VInt(((VInt)v1).value + ((VInt)v2).value);
+      } else if(v1 instanceof VDouble) {
+        return new VDouble(((VDouble)v1).value + ((VDouble)v2).value);
+      } else throw new TypeException ("value should be a numeric type");
     }
     public Value visit(CPP.Absyn.EMinus p, Void arg)
     { /* Code For EMinus Goes Here */
-      p.exp_1.accept(new ExpVisitor(), arg);
-      p.exp_2.accept(new ExpVisitor(), arg);
-      throw new TypeException ("not yet implemented");
+      Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
+      Value v2 = p.exp_2.accept(new ExpVisitor(), arg);
+      if (v1 instanceof VInt) {
+        return new VInt(((VInt)v1).value - ((VInt)v2).value);
+      } else if(v1 instanceof VDouble) {
+        return new VDouble(((VDouble)v1).value - ((VDouble)v2).value);
+      } else throw new TypeException ("value should be a numeric type");
     }
     public Value visit(CPP.Absyn.ELt p, Void arg)
     { /* Code For ELt Goes Here */
-      p.exp_1.accept(new ExpVisitor(), arg);
-      p.exp_2.accept(new ExpVisitor(), arg);
-      throw new TypeException ("not yet implemented");
+      Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
+      Value v2 = p.exp_2.accept(new ExpVisitor(), arg);
+      if (v1 instanceof VInt) {
+        return new VBool(((VInt)v1).value < ((VInt)v2).value);
+      } else if(v1 instanceof VDouble) {
+        return new VBool(((VDouble)v1).value < ((VDouble)v2).value);
+      } else throw new TypeException ("value should be a numeric type");
     }
     public Value visit(CPP.Absyn.EGt p, Void arg)
     { /* Code For EGt Goes Here */
-      p.exp_1.accept(new ExpVisitor(), arg);
-      p.exp_2.accept(new ExpVisitor(), arg);
-      throw new TypeException ("not yet implemented");
+      Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
+      Value v2 = p.exp_2.accept(new ExpVisitor(), arg);
+      if (v1 instanceof VInt) {
+        return new VBool(((VInt)v1).value > ((VInt)v2).value);
+      } else if(v1 instanceof VDouble) {
+        return new VBool(((VDouble)v1).value > ((VDouble)v2).value);
+      } else throw new TypeException ("value should be a numeric type");
     }
     public Value visit(CPP.Absyn.ELtEq p, Void arg)
     { /* Code For ELtEq Goes Here */
-      p.exp_1.accept(new ExpVisitor(), arg);
-      p.exp_2.accept(new ExpVisitor(), arg);
-      throw new TypeException ("not yet implemented");
+      Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
+      Value v2 = p.exp_2.accept(new ExpVisitor(), arg);
+      if (v1 instanceof VInt) {
+        return new VBool(((VInt)v1).value <= ((VInt)v2).value);
+      } else if(v1 instanceof VDouble) {
+        return new VBool(((VDouble)v1).value <=((VDouble)v2).value);
+      } else throw new TypeException ("value should be a numeric type");
     }
     public Value visit(CPP.Absyn.EGtEq p, Void arg)
-    { /* Code For EGtEq Goes Here */
-      p.exp_1.accept(new ExpVisitor(), arg);
-      p.exp_2.accept(new ExpVisitor(), arg);
-      throw new TypeException ("not yet implemented");
+    { 
+      Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
+      Value v2 = p.exp_2.accept(new ExpVisitor(), arg);
+      if (v1 instanceof VInt) {
+        return new VBool(((VInt)v1).value >= ((VInt)v2).value);
+      } else if(v1 instanceof VDouble) {
+        return new VBool(((VDouble)v1).value >= ((VDouble)v2).value);
+      } else throw new TypeException ("value should be a numeric type");
     }
     public Value visit(CPP.Absyn.EEq p, Void arg)
     { /* Code For EEq Goes Here */
-      p.exp_1.accept(new ExpVisitor(), arg);
-      p.exp_2.accept(new ExpVisitor(), arg);
-      throw new TypeException ("not yet implemented");
+      Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
+      Value v2 = p.exp_2.accept(new ExpVisitor(), arg);
+      if (v1 instanceof VInt) {
+        return new VBool(((VInt)v1).value.equals(((VInt)v2).value));
+      } else if(v1 instanceof VDouble) {
+        return new VBool(((VDouble)v1).value.equals(((VDouble)v2).value));
+      } else throw new TypeException ("value should be a numeric type");
     }
     public Value visit(CPP.Absyn.ENEq p, Void arg)
     { /* Code For ENEq Goes Here */
-      p.exp_1.accept(new ExpVisitor(), arg);
-      p.exp_2.accept(new ExpVisitor(), arg);
-      throw new TypeException ("not yet implemented");
+      Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
+      Value v2 = p.exp_2.accept(new ExpVisitor(), arg);
+      if (v1 instanceof VInt) {
+        return new VBool(!((VInt)v1).value.equals(((VInt)v2).value));
+      } else if(v1 instanceof VDouble) {
+        return new VBool(!((VDouble)v1).value.equals(((VDouble)v2).value));
+      } else throw new TypeException ("value should be a numeric type");
     }
     public Value visit(CPP.Absyn.EAnd p, Void arg)
     { /* Code For EAnd Goes Here */
-      p.exp_1.accept(new ExpVisitor(), arg);
-      p.exp_2.accept(new ExpVisitor(), arg);
-      throw new TypeException ("not yet implemented");
+      Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
+      Value v2 = p.exp_2.accept(new ExpVisitor(), arg);
+      if (!((v1 instanceof VBool)&&(v2 instanceof VBool)))
+        throw new RuntimeException("value must be a Boolean type");
+      if(((VBool) v1).value==false){
+        return new VBool(false);
+      } else {
+        return (VBool) v2;
+      } 
     }
     public Value visit(CPP.Absyn.EOr p, Void arg)
     { /* Code For EOr Goes Here */
-      p.exp_1.accept(new ExpVisitor(), arg);
-      p.exp_2.accept(new ExpVisitor(), arg);
-      throw new TypeException ("not yet implemented");
+      Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
+      Value v2 = p.exp_2.accept(new ExpVisitor(), arg);
+      if (!((v1 instanceof VBool)&&(v2 instanceof VBool)))
+        throw new RuntimeException("value must be a Boolean type");
+      if(((VBool) v1).value==true){
+        return new VBool(true);
+      } else {
+        return (VBool) v2;
+      } 
     }
     public Value visit(CPP.Absyn.EAss p, Void arg)
     { /* Code For EAss Goes Here */
@@ -272,7 +332,17 @@ public class Interpreter {
 
   public Value increment (Value v) {
     if (v instanceof VInt) {
-      return new VInt(((VInt)v).value + 1);
-    } else throw new TypeException ("not yet implemented");
+        return new VInt(((VInt)v).value + 1);
+    } else if(v instanceof VDouble) {
+        return new VDouble(((VDouble)v).value + 1.0);
+    } else throw new TypeException ("value should be a numeric type");
+  }
+
+  public Value decrement (Value v) {
+    if (v instanceof VInt) {
+        return new VInt(((VInt)v).value - 1);
+    } else if(v instanceof VDouble) {
+        return new VDouble(((VDouble)v).value - 1.0);
+    } else throw new TypeException ("value should be a numeric type");
   }
 }
