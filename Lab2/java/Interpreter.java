@@ -9,6 +9,12 @@ public class Interpreter {
   // environment
   private List<Map<String,Value>> env;
 
+  // type 
+  public final Type BOOL   = new Type_bool();
+	public final Type INT    = new Type_int();
+	public final Type DOUBLE = new Type_double();
+	public final Type VOID   = new Type_void();
+
   // entrypoint
   public void interpret(Program p) {
     p.accept(new ProgramVisitor (), null);
@@ -60,21 +66,21 @@ public class Interpreter {
 
   ////////////////////////////// Statements //////////////////////////////
 
-  public class StmVisitor implements Stm.Visitor<Void,Void>
+  public class StmVisitor implements Stm.Visitor<Value,Void>
   {
-    public Void visit(CPP.Absyn.SExp p, Void arg)
+    public Value visit(CPP.Absyn.SExp p, Void arg)
     { /* Code For SExp Goes Here */
       Value v = p.exp_.accept(new ExpVisitor(), arg);
       return null;
     }
-    public Void visit(CPP.Absyn.SDecls p, Void arg)
+    public Value visit(CPP.Absyn.SDecls p, Void arg)
     { /* Code For SDecls Goes Here */
       // p.type_.accept(new TypeVisitor(), arg);
       for (String x: p.listid_)
       { /* ... */ }
       throw new TypeException ("not yet implemented");
     }
-    public Void visit(CPP.Absyn.SInit p, Void arg)
+    public Value visit(CPP.Absyn.SInit p, Void arg)
     { /* Code For SInit Goes Here */
       // p.type_.accept(new TypeVisitor(), arg);
       //p.id_;
@@ -82,24 +88,23 @@ public class Interpreter {
       newVar (p.id_, v);
       return null;
     }
-    public Void visit(CPP.Absyn.SReturn p, Void arg)
-    { /* Code For SReturn Goes Here */
-      Value v = p.exp_.accept(new ExpVisitor(), arg);
-      return v;
-    }
-    public Void visit(CPP.Absyn.SWhile p, Void arg)
+    public Value visit(CPP.Absyn.SReturn p, Void arg)
+    {  /*Code For SReturn Goes Here */
+      return p.exp_.accept(new ExpVisitor(), arg);
+    } 
+    public Value visit(CPP.Absyn.SWhile p, Void arg)
     { /* Code For SWhile Goes Here */
       p.exp_.accept(new ExpVisitor(), arg);
       p.stm_.accept(new StmVisitor(), arg);
       throw new TypeException ("not yet implemented");
     }
-    public Void visit(CPP.Absyn.SBlock p, Void arg)
+    public Value visit(CPP.Absyn.SBlock p, Void arg)
     { /* Code For SBlock Goes Here */
       for (Stm x: p.liststm_)
       { /* ... */ }
       throw new TypeException ("not yet implemented");
     }
-    public Void visit(CPP.Absyn.SIfElse p, Void arg)
+    public Value visit(CPP.Absyn.SIfElse p, Void arg)
     { /* Code For SIfElse Goes Here */
       p.exp_.accept(new ExpVisitor(), arg);
       p.stm_1.accept(new StmVisitor(), arg);
@@ -126,7 +131,7 @@ public class Interpreter {
     }
     public Value visit(CPP.Absyn.EDouble p, Void arg)
     { /* Code For EDouble Goes Here */
-      return VDouble(p.double_);
+      return new VDouble(p.double_);
     }
     public Value visit(CPP.Absyn.EId p, Void arg)
     {
@@ -150,6 +155,7 @@ public class Interpreter {
       // return new RuntimeException ("Function had no return statement");
       return new VVoid();
     }
+
     public Value visit(CPP.Absyn.EPostIncr p, Void arg)
     { /* Code For EPostIncr Goes Here */
       Value v  = lookupVar (p.id_);
@@ -157,6 +163,7 @@ public class Interpreter {
       assignVar (p.id_, v1);
       return v;
     }
+
     public Value visit(CPP.Absyn.EPostDecr p, Void arg)
     { /* Code For EPostDecr Goes Here */
       Value v  = lookupVar (p.id_);
@@ -164,6 +171,7 @@ public class Interpreter {
       assignVar (p.id_, v1);
       return v;
     }
+
     public Value visit(CPP.Absyn.EPreIncr p, Void arg)
     { /* Code For EPreIncr Goes Here */
       Value v  = lookupVar (p.id_);
@@ -171,6 +179,7 @@ public class Interpreter {
       assignVar (p.id_, v1);
       return v1;
     }
+
     public Value visit(CPP.Absyn.EPreDecr p, Void arg)
     { /* Code For EPreDecr Goes Here */
       Value v  = lookupVar (p.id_);
@@ -178,6 +187,7 @@ public class Interpreter {
       assignVar (p.id_, v1);
       return v1;
     }
+
     public Value visit(CPP.Absyn.ETimes p, Void arg)
     { /* Code For ETimes Goes Here */
       Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
@@ -188,6 +198,7 @@ public class Interpreter {
         return new VDouble(((VDouble)v1).value * ((VDouble)v2).value);
       } else throw new TypeException ("value should be a numeric type");
     }
+
     public Value visit(CPP.Absyn.EDiv p, Void arg)
     { /* Code For EDiv Goes Here */
       Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
@@ -198,6 +209,7 @@ public class Interpreter {
         return new VDouble(((VDouble)v1).value / ((VDouble)v2).value);
       } else throw new TypeException ("value should be a numeric type");
     }
+
     public Value visit(CPP.Absyn.EPlus p, Void arg)
     { /* Code For EPlus Goes Here */
       Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
@@ -208,6 +220,7 @@ public class Interpreter {
         return new VDouble(((VDouble)v1).value + ((VDouble)v2).value);
       } else throw new TypeException ("value should be a numeric type");
     }
+
     public Value visit(CPP.Absyn.EMinus p, Void arg)
     { /* Code For EMinus Goes Here */
       Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
@@ -218,6 +231,7 @@ public class Interpreter {
         return new VDouble(((VDouble)v1).value - ((VDouble)v2).value);
       } else throw new TypeException ("value should be a numeric type");
     }
+
     public Value visit(CPP.Absyn.ELt p, Void arg)
     { /* Code For ELt Goes Here */
       Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
@@ -228,6 +242,7 @@ public class Interpreter {
         return new VBool(((VDouble)v1).value < ((VDouble)v2).value);
       } else throw new TypeException ("value should be a numeric type");
     }
+
     public Value visit(CPP.Absyn.EGt p, Void arg)
     { /* Code For EGt Goes Here */
       Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
@@ -238,6 +253,7 @@ public class Interpreter {
         return new VBool(((VDouble)v1).value > ((VDouble)v2).value);
       } else throw new TypeException ("value should be a numeric type");
     }
+
     public Value visit(CPP.Absyn.ELtEq p, Void arg)
     { /* Code For ELtEq Goes Here */
       Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
@@ -248,6 +264,7 @@ public class Interpreter {
         return new VBool(((VDouble)v1).value <=((VDouble)v2).value);
       } else throw new TypeException ("value should be a numeric type");
     }
+
     public Value visit(CPP.Absyn.EGtEq p, Void arg)
     { 
       Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
@@ -258,6 +275,7 @@ public class Interpreter {
         return new VBool(((VDouble)v1).value >= ((VDouble)v2).value);
       } else throw new TypeException ("value should be a numeric type");
     }
+
     public Value visit(CPP.Absyn.EEq p, Void arg)
     { /* Code For EEq Goes Here */
       Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
@@ -268,6 +286,7 @@ public class Interpreter {
         return new VBool(((VDouble)v1).value.equals(((VDouble)v2).value));
       } else throw new TypeException ("value should be a numeric type");
     }
+
     public Value visit(CPP.Absyn.ENEq p, Void arg)
     { /* Code For ENEq Goes Here */
       Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
@@ -278,6 +297,7 @@ public class Interpreter {
         return new VBool(!((VDouble)v1).value.equals(((VDouble)v2).value));
       } else throw new TypeException ("value should be a numeric type");
     }
+
     public Value visit(CPP.Absyn.EAnd p, Void arg)
     { /* Code For EAnd Goes Here */
       Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
@@ -290,6 +310,7 @@ public class Interpreter {
         return (VBool) v2;
       } 
     }
+
     public Value visit(CPP.Absyn.EOr p, Void arg)
     { /* Code For EOr Goes Here */
       Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
@@ -302,6 +323,7 @@ public class Interpreter {
         return (VBool) v2;
       } 
     }
+
     public Value visit(CPP.Absyn.EAss p, Void arg)
     { /* Code For EAss Goes Here */
       p.exp_.accept(new ExpVisitor(), arg);
