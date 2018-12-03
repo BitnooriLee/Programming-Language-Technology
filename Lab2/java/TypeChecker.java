@@ -47,7 +47,7 @@ public class TypeChecker {
             if(!sig.containsKey("main"))
                 throw new TypeException("The 'main' function is missing!");
             if(!sig.get("main").returnType.equals(INT))
-			        	throw new TypeException("The 'main' function is not Int!");
+			        	throw new TypeException("The 'main' function has wrong return type");
 		      	if(!sig.get("main").args.isEmpty())
 				        throw new TypeException("The 'main' function has no argument");
             return null;
@@ -211,7 +211,8 @@ public class TypeChecker {
             int i=0;
             for (Exp e : p.listexp_) {
                 ADecl a = (ADecl) ft.args.get(i);
-                checkExpr (e, a.type_);
+                //checkExpr (e, a.type_);
+                check(a.type_, e.accept(new ExpVisitor(), arg));
                 i++;
             }
             return ft.returnType;
@@ -354,7 +355,7 @@ public class TypeChecker {
         // Assignment
         public Type visit(CPP.Absyn.EAss p, Void arg) { 
             Type varType = lookupVar(p.id_);
-         check(varType, p.exp_.accept(new ExpVisitor(), arg));
+            check(varType, p.exp_.accept(new ExpVisitor(), arg));
             return varType;
         }
     }
