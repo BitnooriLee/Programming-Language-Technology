@@ -32,7 +32,6 @@ public class TypeChecker {
             sig.put("readInt"    , new FunType(INT, new ListArg()));
             sig.put("printDouble", new FunType(VOID, singleArg(DOUBLE)));
             sig.put("readDouble" , new FunType(DOUBLE, new ListArg()));
-            // TODO: other primitive functions, DONE
 
             // Extend signature by all the definitions
             for (Def d: p.listdef_) {
@@ -44,10 +43,13 @@ public class TypeChecker {
                 d.accept(new DefVisitor(), arg);
             }
 
-            // TODO: Check for main, DONE
+            // Check for main
             if(!sig.containsKey("main"))
                 throw new TypeException("The 'main' function is missing!");
-
+            if(!sig.get("main").returnType.equals(INT))
+			        	throw new TypeException("The 'main' function is not Int!");
+		      	if(!sig.get("main").args.isEmpty())
+				        throw new TypeException("The 'main' function has no argument");
             return null;
         }
     }
@@ -143,8 +145,6 @@ public class TypeChecker {
         }
 
         public Void visit(CPP.Absyn.SWhile p, Void arg) {
-            //throw new TypeException ("not yet implemented");
-
             checkExpr(p.exp_, BOOL);
 
             enterScope();
@@ -155,20 +155,23 @@ public class TypeChecker {
         }
 
         public Void visit(CPP.Absyn.SBlock p, Void arg) {
-            //System.out.println("hello1");
-
             enterScope();
             for (Stm stm : p.liststm_)
                 stm.accept(this, arg);
             leaveScope();
             return null;
-
-            //throw new TypeException ("not yet implemented");
         }
 
-        public Void visit(CPP.Absyn.SIfElse p, Void arg) {
-            System.out.println("hello2");
-            throw new TypeException ("not yet implemented2");
+        public Void visit(CPP.Absyn.SIfElse p, Void arg) { 
+            Type t = p.exp_.accept(new ExpVisitor(), arg);
+            check(t, BOOL);
+         enterScope();
+         p.stm_1.accept(new StmVisitor(), arg);
+         leaveScope();
+         enterScope();
+         p.stm_2.accept(new StmVisitor(), arg);
+         leaveScope();
+         return null;
         }
     }
 
@@ -180,12 +183,15 @@ public class TypeChecker {
         public Type visit(CPP.Absyn.ETrue p, Void arg) {
             return BOOL;
         }
+        
         public Type visit(CPP.Absyn.EFalse p, Void arg) {
             return BOOL;
         }
+
         public Type visit(CPP.Absyn.EInt p, Void arg) {
             return INT;
         }
+
         public Type visit(CPP.Absyn.EDouble p, Void arg) {
             return DOUBLE;
         }
@@ -213,118 +219,143 @@ public class TypeChecker {
 
         // Increment, decrement
 
-        public Type visit(CPP.Absyn.EPostIncr p, Void arg) {
+        public Type visit(CPP.Absyn.EPostIncr p, Void arg) { 
             Type t = numericType(lookupVar(p.id_));
             return t;
         }
 
-        public Type visit(CPP.Absyn.EPostDecr p, Void arg) {
+        public Type visit(CPP.Absyn.EPostDecr p, Void arg) { 
             Type t = numericType(lookupVar(p.id_));
             return t;
         }
 
-        public Type visit(CPP.Absyn.EPreIncr p, Void arg) {
+        public Type visit(CPP.Absyn.EPreIncr p, Void arg) { 
             Type t = numericType(lookupVar(p.id_));
             return t;
         }
 
-        public Type visit(CPP.Absyn.EPreDecr p, Void arg) {
+        public Type visit(CPP.Absyn.EPreDecr p, Void arg) { 
             Type t = numericType(lookupVar(p.id_));
             return t;
         }
 
         // Arithmetical operators
 
-        public Type visit(CPP.Absyn.ETimes p, Void arg) {
-            System.out.println("hello6");
-            throw new TypeException ("not yet implemented6");
+        public Type visit(CPP.Absyn.ETimes p, Void arg) { 
+            Type t1 = p.exp_1.accept(new ExpVisitor(), arg);
+            Type t2 = p.exp_2.accept(new ExpVisitor(), arg);
+            numericType(t1);
+            numericType(t2);
+         check(t1, t2);
+         return t1;
         }
 
-        public Type visit(CPP.Absyn.EDiv p, Void arg) {
-            System.out.println("hello7");
-            throw new TypeException ("not yet implemented7");
+        public Type visit(CPP.Absyn.EDiv p, Void arg) { 
+            Type t1 = p.exp_1.accept(new ExpVisitor(), arg);
+            Type t2 = p.exp_2.accept(new ExpVisitor(), arg);
+         numericType(t1);
+            numericType(t2);
+         check(t1, t2);
+         return t1;
         }
 
-        public Type visit(CPP.Absyn.EPlus p, Void arg) {
-            System.out.println("hello8");
-            throw new TypeException ("not yet implemented8");
+        public Type visit(CPP.Absyn.EPlus p, Void arg) { 
+            Type t1 = p.exp_1.accept(new ExpVisitor(), arg);
+            Type t2 = p.exp_2.accept(new ExpVisitor(), arg);
+         numericType(t1);
+            numericType(t2);
+         check(t1, t2);
+         return t1;
         }
 
-        public Type visit(CPP.Absyn.EMinus p, Void arg) {
-            System.out.println("hello9");
-            throw new TypeException ("not yet implemented9");
+        public Type visit(CPP.Absyn.EMinus p, Void arg) { 
+            Type t1 = p.exp_1.accept(new ExpVisitor(), arg);
+            Type t2 = p.exp_2.accept(new ExpVisitor(), arg);
+         numericType(t1);
+            numericType(t2);
+         check(t1, t2);
+         return t1;
         }
 
         // Comparison operators
 
-        public Type visit(CPP.Absyn.ELt p, Void arg) { // Left is smaller
+        public Type visit(CPP.Absyn.ELt p, Void arg) { 
             Type t1 = p.exp_1.accept(new ExpVisitor(), null);
             Type t2 = p.exp_2.accept(new ExpVisitor(), null);
-
-            if (equalTypes(t1, t2)) {
-                return voidCheck("<", t1, t2);
-            }
-            else {
-                throw new TypeException("expected types " + t1 + " and " + t2 + " to be equal");
-            }
+            numericType(t1);
+            numericType(t2);
+            equalTypes(t1, t2);
+            return BOOL;
         }
 
-        public Type visit(CPP.Absyn.EGt p, Void arg) { // Right is smaller
+        public Type visit(CPP.Absyn.EGt p, Void arg) { 
             Type t1 = p.exp_1.accept(new ExpVisitor(), null);
             Type t2 = p.exp_2.accept(new ExpVisitor(), null);
-
-            if (equalTypes(t1, t2)) {
-                return voidCheck(">", t1, t2);
-            }
-            else {
-                throw new TypeException("expected types " + t1 + " and " + t2 + " to be equal");
-            }
+            numericType(t1);
+            numericType(t2);
+            equalTypes(t1, t2);
+            return BOOL;
         }
 
-        public Type visit(CPP.Absyn.ELtEq p, Void arg) {
-            System.out.println("hello12");
-            throw new TypeException ("not yet implemented12");
+        public Type visit(CPP.Absyn.ELtEq p, Void arg) { 
+            Type t1 = p.exp_1.accept(new ExpVisitor(), null);
+            Type t2 = p.exp_2.accept(new ExpVisitor(), null);
+            numericType(t1);
+            numericType(t2);
+            equalTypes(t1, t2);
+            return BOOL;
         }
 
-        public Type visit(CPP.Absyn.EGtEq p, Void arg) {
-            System.out.println("hello13");
-            throw new TypeException ("not yet implemented13");
+        public Type visit(CPP.Absyn.EGtEq p, Void arg) { 
+            Type t1 = p.exp_1.accept(new ExpVisitor(), null);
+            Type t2 = p.exp_2.accept(new ExpVisitor(), null);
+            numericType(t1);
+            numericType(t2);
+            equalTypes(t1, t2);
+            return BOOL;
         }
 
         // Equality operators
 
-        public Type visit(CPP.Absyn.EEq p, Void arg) {
-            Type t1 = p.exp_1.accept(new ExpVisitor(), null);
-            Type t2 = p.exp_2.accept(new ExpVisitor(), null);
-
-            if (equalTypes(t1, t2)) {
-                return voidCheck("==", t1, t2);
-            } else {
-                throw new TypeException("expected types " + t1 + " and " + t2 + " to be equal");
-            }
+        public Type visit(CPP.Absyn.EEq p, Void arg) { 
+            Type t1 = p.exp_1.accept(new ExpVisitor(), arg);
+            Type t2 = p.exp_2.accept(new ExpVisitor(), arg);
+         equalTypes(t1, t2);
+         check(t1, t2);
+         return BOOL;
         }
 
-        public Type visit(CPP.Absyn.ENEq p, Void arg) {
-            System.out.println("hello15");
-            throw new TypeException ("not yet implemented15");
+        public Type visit(CPP.Absyn.ENEq p, Void arg) { 
+            Type t1 = p.exp_1.accept(new ExpVisitor(), arg);
+            Type t2 = p.exp_2.accept(new ExpVisitor(), arg);
+         equalTypes(t1, t2);
+         check(t1, t2);
+         return BOOL;
         }
 
         // Logic operators
 
-        public Type visit(CPP.Absyn.EAnd p, Void arg) {
-            System.out.println("hello16");
-            throw new TypeException ("not yet implemented16");
+        public Type visit(CPP.Absyn.EAnd p, Void arg) { 
+            Type t1 = p.exp_1.accept(new ExpVisitor(), arg);
+            Type t2 = p.exp_2.accept(new ExpVisitor(), arg);
+            check(t1, BOOL);
+         check(t2, BOOL);
+         return BOOL;
         }
 
-        public Type visit(CPP.Absyn.EOr p, Void arg) {
-            System.out.println("hello17");
-            throw new TypeException ("not yet implemented17");
+        public Type visit(CPP.Absyn.EOr p, Void arg) { 
+            Type t1 = p.exp_1.accept(new ExpVisitor(), arg);
+            Type t2 = p.exp_2.accept(new ExpVisitor(), arg);
+            check(t1, BOOL);
+         check(t2, BOOL);
+         return BOOL;
         }
 
         // Assignment
-        public Type visit(CPP.Absyn.EAss p, Void arg) {
-            System.out.println("hello18");
-            throw new TypeException ("not yet implemented18");
+        public Type visit(CPP.Absyn.EAss p, Void arg) { 
+            Type varType = lookupVar(p.id_);
+         check(varType, p.exp_.accept(new ExpVisitor(), arg));
+            return varType;
         }
     }
 
@@ -341,19 +372,18 @@ public class TypeChecker {
     }
 
     public Type lookupVar(String x) {
-        for (Map<String,Type> m: cxt) {
+        for (Map<String, Type> m: cxt) {
             Type t = m.get(x);
             if (t != null) return t;
         }
-        throw new TypeException("unbound variable " + x);
+        throw new TypeException("Uninitialized variable " + x);
     }
 
-    public void enterScope() { // sangseok
+    public void enterScope() { 
         cxt.add(0, new TreeMap());
     }
 
-    public void leaveScope() { // sangseok
-        //scopes.removeFirst();
+    public void leaveScope() { 
         cxt.remove(0);
     }
 
@@ -378,21 +408,13 @@ public class TypeChecker {
         return t;
     }
 
-    public boolean equalTypes(Type t1, Type t2) {
-        return t1.equals(t2);
-    }
+    public void equalTypes(Type t1, Type t2) {
+      if (!t1.equals(t2))
+         throw new TypeException("expected types " + t1 + " and " + t2 + " to be equal");
+   }
 
-    public Type voidCheck(String operand, Type code1, Type code2) {
-        if (code1 instanceof Type_void || code2 instanceof Type_void) {
-            throw new TypeException("Any type can't be void for " + operand);
-        }
-        else {
-            return BOOL;   
-        }
-    }
-
-    public Type booleanCheck(String operand, Type code1, Type code2) {
-        if (code1 instanceof Type_bool && code2 instanceof Type_bool) {
+    public Type booleanCheck(String operand, Type t1, Type t2) {
+        if (t1 instanceof Type_bool && t2 instanceof Type_bool) {
             return BOOL;
         }
         else {
