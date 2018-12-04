@@ -93,7 +93,6 @@ public class Interpreter {
             return p.exp_.accept(new ExpVisitor(), arg);
         }
 
-        // sangseok, template
         public Value visit(CPP.Absyn.SWhile p, Void arg) { /* Code For SWhile Goes Here */
             Value v = p.exp_.accept(new ExpVisitor(), arg);
             if (((VBool)v).value) {
@@ -180,16 +179,6 @@ public class Interpreter {
                 return new VDouble(x);
             }
             else {
-                // for (Exp e: p.listexp_) { /* ... */ 
-                // }
-
-                // try {
-                // // Execute function body
-                // } catch (ReturnException e) {
-                // return e.returnValue;
-                // }
-
-                /////////////////////
 
                 DFun fun = sig.get(p.id_);
 
@@ -219,9 +208,8 @@ public class Interpreter {
                 throw new RuntimeException("no return statment"); // done
             }
 
-            //return new RuntimeException("Function had no return statement");
             return new VVoid();
-            //return null;
+          
         }
 
         public Value visit(CPP.Absyn.EPostIncr p, Void arg) { /* Code For EPostIncr Goes Here */
@@ -378,7 +366,7 @@ public class Interpreter {
             else throw new TypeException ("value should be a numeric type");
         }
 
-        // DONE
+
         public Value visit(CPP.Absyn.EAnd p, Void arg) { /* Code For EAnd Goes Here */
             Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
             if (((VBool)v1).value) {
@@ -391,7 +379,6 @@ public class Interpreter {
             return new VBool(false);
         }
 
-        // DONE
         public Value visit(CPP.Absyn.EOr p, Void arg) { /* Code For EOr Goes Here */
             Value v1 = p.exp_1.accept(new ExpVisitor(), arg);
             if (((VBool)v1).value) {
@@ -406,7 +393,7 @@ public class Interpreter {
             return new VBool(false);
         }
 
-        // DONE
+     
         public Value visit(CPP.Absyn.EAss p, Void arg) { /* Code For EAss Goes Here */
             Value val = p.exp_.accept(new ExpVisitor(), arg);
             updateVar(p.id_, val);
