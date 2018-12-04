@@ -40,31 +40,17 @@ public class Interpreter {
             env = new LinkedList();
             env.add(new TreeMap());
 
-            // Execute the function body
-            try {
-                for (Stm s: main.liststm_) {
-                    s.accept(new StmVisitor(), null);
-                }
+            for (Stm x: main.liststm_) {
+                if (x.accept(new StmVisitor(), null) != null)
+                    break;
             }
-            catch (ReturnException e) {}
-
             return null;
         }
     }
     
     public class DefVisitor implements Def.Visitor<Void, Void> {
         public Void visit(CPP.Absyn.DFun p, Void arg) { /* Code For DFun Goes Here */
-            // p.type_.accept(new TypeVisitor<Void,Void>(), arg);
-            // p.id_;
-            // for (Arg x: p.listarg_) { /* ... */ 
-            // }
-
-            // for (Stm x: p.liststm_) { /* ... */ 
-            // }
-
-            // return null;
-
-            //////////////////////////////// ????????????????????
+   
             enterScope();
             for (Arg x: p.listarg_) {
                 addVar(x.accept(new ArgVisitor(), null));
@@ -101,8 +87,9 @@ public class Interpreter {
             newVar(p.id_, v);
             return null;
         }
-
+       
         public Value visit(CPP.Absyn.SReturn p, Void arg) {  /*Code For SReturn Goes Here */
+            
             return p.exp_.accept(new ExpVisitor(), arg);
         }
 

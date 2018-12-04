@@ -71,7 +71,9 @@ public class TypeChecker {
             // Add function to signature
             FunType ft = new FunType (p.type_, p.listarg_);
             sig.put(p.id_, ft);
-
+            if (p.id_.equals("arg")&&p.type_ instanceof Type_void)
+                throw new TypeException ("Fucntion argument cannot be void");           
+ 
             return null;
         }
     }
@@ -140,7 +142,10 @@ public class TypeChecker {
         }
 
         public Void visit(CPP.Absyn.SReturn p, Void arg) {
+         
             checkExpr(p.exp_, returnType);
+            //System.out.println(p.exp_);
+            //System.out.println(sig.containsKey("main"));
             return null;
         }
 
