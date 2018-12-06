@@ -5,7 +5,7 @@
 
 # Edit to add new java source files, if needed!
 LABSRC    = lab3.java TypeException.java TypeChecker.java Compiler.java \
-            Runtime.java
+  PatchExp.java FunType.java Code.java Runtime.java
 
 # No need to edit these:
 PARSERSRC = $(wildcard CPP/Absyn/*.java CPP/*.java)
@@ -34,19 +34,32 @@ java        = ${JAVA}  ${JAVA_FLAGS}
 ###########################################################################
 
 # List of goals not corresponding to file names.
-.PHONY : default all clean distclean vclean
+.PHONY : default all test clean distclean vclean
 
 # As the first goal is default goal, this goal needs to remain first.
-default : lab3.class Runtime.class lab3
+default : lab3
 
-# Build and ship
-all : default sdist
+# Build, test and ship
+all : lab3 test sdist
+
+# Rules for running tests
+###########################################################################
+
+# Name stem of C-- file to test compiler on.
+test = fib
+
+test : test/$(test).class Runtime.class
+	java -cp test:. $(test)
+
+%.class : %.cc lab3
+	./lab3 $<
 
 # Compiling the lab3 runner
 ###########################################################################
 
-lab3 : lab3.hs
+lab3 : lab3.hs lab3.class
 	ghc --make -cpp $< -o $@
+	touch $@
 
 # Rules for compiling lab3 classes (modify or add as needed)
 ###########################################################################
@@ -54,7 +67,10 @@ lab3 : lab3.hs
 TypeChecker.class : TypeChecker.java TypeException.class CPP/Test.class
 	$(javac) $<
 
-Compiler.class : Compiler.java CPP/Test.class
+FunType.class Code.class : %.class : %.java CPP/Test.class
+	$(javac) $<
+
+Compiler.class : Compiler.java FunType.class Code.class CPP/Test.class
 	$(javac) $<
 
 lab3.class : lab3.java TypeChecker.class Compiler.class CPP/Test.class
@@ -68,6 +84,7 @@ lab3.class : lab3.java TypeChecker.class Compiler.class CPP/Test.class
 # Patch CPP/Absyn/Exp.java
 CPP/Yylex $(CUPFILE) CPP/Test.java : CPP.cf
 	bnfc --java $<
+	cp -f PatchExp.java CPP/Absyn/Exp.java
 
 # Create parser and move it to the correct location.
 CPP/parser.java CPP/sym.java : $(CUPFILE)
