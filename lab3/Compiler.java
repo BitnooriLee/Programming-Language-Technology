@@ -295,7 +295,6 @@ public class Compiler
       CxtEntry ce = lookupVar(p.id_);
       emit (new Incr (ce.type, ce.addr, 1));
       return null;
-      
     }
 
     // x--
@@ -382,6 +381,33 @@ public class Compiler
       return null;
     }
 
+		public Type visit(CPP.Absyn.ELt p, Type arg)
+		{ /* Code For ELt Goes Here */
+			emit(new IConst(1));
+			Type t = p.exp_1.accept(new ExpVisitor(), null);
+			p.exp_2.accept(new ExpVisitor(), null);
+			if(t instanceof Type_int){
+				Label trueLabel = new Label(newLabel("TRUE"));
+				emit(new IfLt(t, trueLabel));
+				emit(new Pop(INT));
+				emit(new IConst(0));
+				emit(trueLabel);
+			} else if(t instanceof Type_double){
+				Label trueLabel = new Label(newLabel("DTRUE"));
+				Label falseLabel = new Label(newLabel("DFALSE"));
+				emit(new DGt());
+				emit(new Mul(INT));
+				emit(new IConst(-1));
+				emit(new IfEq(INT, trueLabel));
+				emit(new IConst(0));
+				emit(new Goto(falseLabel));
+				emit(trueLabel);
+				emit(new IConst(1));
+				emit(falseLabel);
+			}
+			return null;
+		}
+
     // e > e' (+)
     public Void visit(CPP.Absyn.EGt p, Void arg)
     {
@@ -445,7 +471,7 @@ public class Compiler
       emit (new Load (ce.type, ce.addr));
       return null;
     }
-  }
+  } // or Dup, Store
 
   void newBlock() {
     cxt.add(0, new TreeMap());

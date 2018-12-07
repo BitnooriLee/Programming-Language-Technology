@@ -428,5 +428,3 @@ public class TypeChecker {
         }
     }
 }
-
-//TODO : remove double 

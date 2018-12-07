@@ -363,12 +363,12 @@ class CodeToJVM implements CodeVisitor<String> {
       return ""; // "nop"?????
 	}    
 
-  public String visit (Goto c) {
+  public String visit (Call c) {
       return "invokestatic" + c.fun.toJVM();
 	} 
 
   public String visit (Goto c) {
-      return "goto" + c.label.label;
+      return "goto" + "L" + c.label.label;
 	} 
 
   public String visit (Return c) {
@@ -383,53 +383,53 @@ class CodeToJVM implements CodeVisitor<String> {
 
   public String visit (IfEq c) {
       if(c.type instanceof Type_int)
-        return "if_icmpeq " + c.label.label;
+        return "if_icmpeq " + "L" + c.label.label;
       else
 		throw new RuntimeException("type must be int!");
 	}
   
   public String visit (IfNe c) {
       if(c.type instanceof Type_int)
-        return "if_icmpne " + c.label.label;
+        return "if_icmpne " + "L" + c.label.label;
       else
 		throw new RuntimeException("type must be int!");
 	}
 
   public String visit (IfLt c) {
       if(c.type instanceof Type_int)
-        return "if_icmplt " + c.label.label;
+        return "if_icmplt " + "L" + c.label.label;
       else
 		throw new RuntimeException("type must be int!");
 	}
 
   public String visit (IfGe c) {
       if(c.type instanceof Type_int)
-        return "if_icmpge " + c.label.label;
+        return "if_icmpge " + "L" + c.label.label;
       else
 		throw new RuntimeException("type must be int!");
 	}
 
   public String visit (IfGt c) {
       if(c.type instanceof Type_int)
-        return "if_icmpgt " + c.label.label;
+        return "if_icmpgt " + "L" + c.label.label;
       else
 		throw new RuntimeException("type must be int!");
 	}
 
   public String visit (IfLe c) {
       if(c.type instanceof Type_int)
-        return "if_icmple " + c.label.label;
+        return "if_icmple " + "L" + c.label.label;
       else
 		throw new RuntimeException("type must be int!");
 	}
 
   public String visit (IfZ c) {
-      return "ifeq" + c.label.label;
-	} // ?
+      return "ifeq" + "L" + c.label.label;
+	} 
 
   public String visit (IfNZ c) {
-      return "ifne" + c.label.label;
-	} // ?
+      return "ifne" + "L" + c.label.label;
+	} 
 
   public String visit (Incr c) {
       if(c.type instanceof Type_int)
