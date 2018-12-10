@@ -381,33 +381,6 @@ public class Compiler
       return null;
     }
 
-		public Type visit(CPP.Absyn.ELt p, Type arg)
-		{ /* Code For ELt Goes Here */
-			emit(new IConst(1));
-			Type t = p.exp_1.accept(new ExpVisitor(), null);
-			p.exp_2.accept(new ExpVisitor(), null);
-			if(t instanceof Type_int){
-				Label trueLabel = new Label(newLabel("TRUE"));
-				emit(new IfLt(t, trueLabel));
-				emit(new Pop(INT));
-				emit(new IConst(0));
-				emit(trueLabel);
-			} else if(t instanceof Type_double){
-				Label trueLabel = new Label(newLabel("DTRUE"));
-				Label falseLabel = new Label(newLabel("DFALSE"));
-				emit(new DGt());
-				emit(new Mul(INT));
-				emit(new IConst(-1));
-				emit(new IfEq(INT, trueLabel));
-				emit(new IConst(0));
-				emit(new Goto(falseLabel));
-				emit(trueLabel);
-				emit(new IConst(1));
-				emit(falseLabel);
-			}
-			return null;
-		}
-
     // e > e' (+)
     public Void visit(CPP.Absyn.EGt p, Void arg)
     {
@@ -473,6 +446,47 @@ public class Compiler
     }
   } // or Dup, Store
 
+  void emit (Code c) {
+		output.add(c.accept(new CodeToJVM()));
+		adjustStack(c);
+	}
+
+  void newVar(String x, Type t) {
+        // Get the top context block
+    Map<String,Type> m = cxt.get(0);
+    m.put(x, nextLocal);
+    Integer size = t.accept(new Size(), null);
+		nextLocal = nextLocal + size;
+		limitLocals = limitLocals + size;
+    }
+
+  Integer lookupVar(String x) {
+    for (Map<String, Type> m: cxt) {
+      Integer v = m.get(x);
+      if (v != null) return v;
+    }
+    return null;
+  }
+
+
+	// (copy) update limitStack, currentStack according to instruction
+	void adjustStack(Code c) {
+		c.accept(new AdjustStack());
+	}
+
+	void incStack(Type t) {
+		currentStack = currentStack + t.accept(new Size(), null);
+		if (currentStack > limitStack) limitStack = currentStack;
+	}
+
+	void decStack(Type t) {
+		currentStack = currentStack - t.accept(new Size(), null);
+	}
+
+  String newLabel(String prefix){
+		return prefix + (nextLabel++);
+	}
+
   void newBlock() {
     cxt.add(0, new TreeMap());
   }
@@ -480,5 +494,144 @@ public class Compiler
   void popBlock() {
     cxt.remove(0);
   }
+  
+  //copy
+  class Size implements Type.Visitor<Integer,Void> {
+
+    public Integer visit (Type_int t, Void arg) {
+        return 1;
+    }
+    public Integer visit (Type_bool t, Void arg) {
+        return 1;
+    }
+    public Integer visit (Type_void t, Void arg) {
+        return 0;
+    }
+    /*public Integer visit (Type_double t, Void arg) {
+          return 2;
+    }*/
+  }
+  //copy
+	class AdjustStack implements CodeVisitor<Void> {
+		public Void visit (Store c) {
+			decStack(c.type);
+			return null;
+		}
+
+		public Void visit (Load c) {
+			incStack(c.type);
+			return null;
+		}
+
+		public Void visit (IConst c) {
+			incStack(new Type_int());
+			return null;
+		}
+
+		public Void visit (DConst c) {
+			incStack(new Type_double());
+			return null;
+		}
+
+		public Void visit (Dup c) {
+			incStack(c.type);
+			return null;
+		}
+
+		public Void visit (Pop c) {
+			decStack(c.type);
+			return null;
+		}
+
+		public Void visit (Return c) {
+			return null;
+		}
+
+		public Void visit (Call c) {
+			incStack(c.fun.funType.returnType);
+			return null;
+		}
+
+		public Void visit (Label c) {
+			return null;
+		}
+
+		public Void visit (Goto c) {
+			return null;
+		}
+
+		public Void visit (IfZ c) {
+			decStack(INT);
+			return null;
+		}
+
+		public Void visit (IfNZ c) {
+			decStack(INT);
+			return null;
+		}
+
+		public Void visit (IfEq c) {
+			decStack(INT);
+			decStack(INT);
+			return null;
+		}
+
+		public Void visit (IfNe c) {
+			decStack(INT);
+			decStack(INT);
+			return null;
+		}
+
+		public Void visit (IfLt c) {
+			decStack(INT);
+			decStack(INT);
+			return null;
+		}
+
+		public Void visit (IfGt c) {
+			decStack(INT);
+			decStack(INT);
+			return null;
+		}
+
+		public Void visit (IfLe c) {
+			decStack(INT);
+			decStack(INT);
+			return null;
+		}
+
+		public Void visit (IfGe c) {
+			decStack(INT);
+			decStack(INT);
+			return null;
+		}
+
+		public Void visit (Incr c) {
+			return null;
+		}
+
+		public Void visit (Add c) {
+			decStack(c.type);
+			return null;
+		}
+
+		public Void visit (Sub c) {
+			decStack(c.type);;
+			return null;
+		}
+
+		public Void visit (Mul c) {
+			decStack(c.type);
+			return null;
+		}
+
+		public Void visit (Div c) {
+			decStack(c.type);
+			return null;
+		}
+
+
+	}
 
 }
+

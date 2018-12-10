@@ -185,17 +185,6 @@ class IfNe extends Code {
     }
 }
 
-class IfEq extends Code {
-    public Type type;
-    public Label label;
-    public IfEq (Type type, Label label) {
-        this.type = type;
-        this.label = label;
-    }
-    public <R> R accept (CodeVisitor<R> v) {
-        return v.visit (this);
-    }
-}
 
 class IfLt extends Code {
     public Type type;
@@ -247,6 +236,8 @@ class IfLe extends Code {
 
 class Incr extends Code {
     public Type type;
+    public Integer addr;
+    public Integer increment;
     public Incr (Type type, Integer addr, Integer increment) {
         this.type = type;
         this.addr = addr;
@@ -284,6 +275,7 @@ class Mul extends Code {
     }
     public <R> R accept (CodeVisitor<R> v) {
         return v.visit (this);
+    }
 }
 
 class Div extends Code {
@@ -293,10 +285,10 @@ class Div extends Code {
     }
     public <R> R accept (CodeVisitor<R> v) {
         return v.visit (this);
+    }
 }
 
 interface CodeVisitor<R> {
-  
 
     public R visit (IConst c);
     public R visit (DConst c);
@@ -314,8 +306,8 @@ interface CodeVisitor<R> {
     public R visit (IfNe c);
     public R visit (IfLt c);
     public R visit (IfGe c);
-    public R visit (IfLt c);
     public R visit (IfGt c);
+    public R visit (IfLe c);
     public R visit (IfZ c);
     public R visit (IfNZ c);
     public R visit (Incr c);
@@ -346,6 +338,18 @@ class CodeToJVM implements CodeVisitor<String> {
 		return (c.addr >=0 && c.addr <=3)? "dload_"+ c.addr : "dload" + c.addr;
       throw new RuntimeException("Wrong Type for load!");
 	}
+
+  public String visit (IConst c) {
+      int i = c.immed.intValue();
+      if (i == -1) return "iconst_m1";
+      if (i >= 0 && i <= 5) return "iconst_" + i;
+      if (i >= -128 && i < 128) return "bipush " + i;
+      return "ldc " + c.immed.toString();
+    }
+
+    public String visit (DConst c) {
+        return "";
+    }
 
   public String visit (Dup c) {
       if(c.type instanceof Type_int||c.type instanceof Type_void)
@@ -469,5 +473,5 @@ class CodeToJVM implements CodeVisitor<String> {
 	}
 
   // TODO should return Jasmin Instructions for each class
-
 }
+
