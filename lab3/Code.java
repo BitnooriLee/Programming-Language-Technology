@@ -72,8 +72,8 @@ class IConst extends Code {
 }
 
 class DConst extends Code {
-    public Integer immed;
-    public DConst (Integer immed) {
+    public Double immed;
+    public DConst (Double immed) {
         this.immed = immed;
     }
     public <R> R accept (CodeVisitor<R> v) {
@@ -121,6 +121,7 @@ class Call extends Code {
     }
 }
 
+//TODO 
 class Target extends Code {
     public Label label;
     public Target (Label label) {
@@ -290,10 +291,11 @@ class Div extends Code {
 
 interface CodeVisitor<R> {
 
-    public R visit (IConst c);
-    public R visit (DConst c);
+
     public R visit (Target c);
         //done
+    public R visit (IConst c);
+    public R visit (DConst c);
     public R visit (Comment c);
     public R visit (Store c);
     public R visit (Load c);
@@ -318,7 +320,13 @@ interface CodeVisitor<R> {
 }
 
 class CodeToJVM implements CodeVisitor<String> {
+ 
+//TODO
 
+  public String visit (Target c) {
+		return c.label + ":";
+	}
+  
   public String visit (Comment c) {
       return "\n  ;; " + c.comment;
     }
@@ -347,7 +355,7 @@ class CodeToJVM implements CodeVisitor<String> {
       return "ldc " + c.immed.toString();
     }
 
-    public String visit (DConst c) {
+  public String visit (DConst c) {
         return "";
     }
 

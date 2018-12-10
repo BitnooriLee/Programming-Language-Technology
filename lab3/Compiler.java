@@ -156,7 +156,7 @@ public class Compiler
   {
     public Void visit(CPP.Absyn.ADecl p, Void arg)
     {
-      newVar (p.id_, p.type_);
+      newVar (p.id_, p.type_); //update
       return null;
     }
   }
@@ -236,9 +236,22 @@ public class Compiler
     {
       // p.exp_ p.stm_1 p.stm_2
       emit (new Comment("test if-condition (" + CPP.PrettyPrinter.print(p.exp_) + ")\n"));
+      Label ifTrue = new Label (nextLabel++);
+      Label ifFalse  = new Label (nextLabel++);
+      p.exp_.accept (new ExpVisitor(), arg);
+      emit (new IfZ(ifFalse));
       emit (new Comment("when (" + CPP.PrettyPrinter.print(p.exp_) + ") do: \n"));
+      newBlock();
+      p.stm_1.accept (this, arg);
+      popBlock();
+      emit (new Goto(ifTrue));
+      emit (new Target(ifFalse));
       emit (new Comment("unless (" + CPP.PrettyPrinter.print(p.exp_) + ") do: \n"));
-      throw new RuntimeException ("TODO: compile " + CPP.PrettyPrinter.print(p));
+      newBlock();
+      p.stm_2.accept (this, arg);
+      popBlock();
+      emit (new Target(ifTrue));
+      return null;
     }
   }
 
@@ -266,7 +279,7 @@ public class Compiler
     // 3.14
     public Void visit(CPP.Absyn.EDouble p, Void arg)
     {
-      emit (new DConst (p.integer_));
+      emit (new DConst (p.double_));
       return null;
     }
 
@@ -444,25 +457,25 @@ public class Compiler
       emit (new Load (ce.type, ce.addr));
       return null;
     }
+    
   } // or Dup, Store
 
   void emit (Code c) {
 		output.add(c.accept(new CodeToJVM()));
-		adjustStack(c);
+		updateStack(c);
 	}
-
-  void newVar(String x, Type t) {
-        // Get the top context block
-    Map<String,Type> m = cxt.get(0);
-    m.put(x, nextLocal);
-    Integer size = t.accept(new Size(), null);
+//Question2 
+  Integer newVar(String x, Type t) {
+		cxt.get(0).put(x, new CxtEntry(t,nextLocal));
+		Integer size = t.accept(new Size(), null);
 		nextLocal = nextLocal + size;
 		limitLocals = limitLocals + size;
-    }
+    return nextLocal;
+  }
 
-  Integer lookupVar(String x) {
-    for (Map<String, Type> m: cxt) {
-      Integer v = m.get(x);
+  CxtEntry lookupVar(String x) {
+    for (Map<String, CxtEntry> m: cxt) {
+      CxtEntry v = m.get(x);
       if (v != null) return v;
     }
     return null;
@@ -470,8 +483,8 @@ public class Compiler
 
 
 	// (copy) update limitStack, currentStack according to instruction
-	void adjustStack(Code c) {
-		c.accept(new AdjustStack());
+	void updateStack(Code c) {
+		c.accept(new UpdateStack());
 	}
 
 	void incStack(Type t) {
@@ -507,12 +520,12 @@ public class Compiler
     public Integer visit (Type_void t, Void arg) {
         return 0;
     }
-    /*public Integer visit (Type_double t, Void arg) {
+    public Integer visit (Type_double t, Void arg) {
           return 2;
-    }*/
+    }
   }
   //copy
-	class AdjustStack implements CodeVisitor<Void> {
+	class UpdateStack implements CodeVisitor<Void> {
 		public Void visit (Store c) {
 			decStack(c.type);
 			return null;
@@ -520,6 +533,10 @@ public class Compiler
 
 		public Void visit (Load c) {
 			incStack(c.type);
+			return null;
+		}
+
+		public Void visit (Comment c) {
 			return null;
 		}
 
@@ -552,7 +569,7 @@ public class Compiler
 			return null;
 		}
 
-		public Void visit (Label c) {
+		public Void visit (Target c) {
 			return null;
 		}
 
