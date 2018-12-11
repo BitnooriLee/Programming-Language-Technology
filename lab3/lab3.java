@@ -31,11 +31,10 @@ public class lab3 {
       CPP.Absyn.Program parseTree = p.pProgram();
 
       // Type check
-      //CPP.Absyn.Program typedTree = new TypeChecker().typecheck(parseTree);
-      (new TypeChecker()).typecheck(parseTree);
+      new TypeChecker().typecheck(parseTree);
 
       // Compile
-      String jtext = new Compiler().compile(className, typedTree);
+      String jtext = new Compiler().compile(className, parseTree);
 
       // Write .j file to same directory where source file was.
       PrintWriter writer = new PrintWriter(jFile);

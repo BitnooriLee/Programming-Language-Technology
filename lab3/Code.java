@@ -324,7 +324,7 @@ class CodeToJVM implements CodeVisitor<String> {
 //TODO
 
   public String visit (Target c) {
-		return c.label + ":";
+		return "L" + c.label + ":";
 	}
   
   public String visit (Comment c) {
@@ -397,42 +397,42 @@ class CodeToJVM implements CodeVisitor<String> {
       if(c.type instanceof Type_int)
         return "if_icmpeq " + "L" + c.label.label;
       else
-		throw new RuntimeException("type must be int!");
+		throw new RuntimeException("type must be int1!");
 	}
   
   public String visit (IfNe c) {
       if(c.type instanceof Type_int)
         return "if_icmpne " + "L" + c.label.label;
       else
-		throw new RuntimeException("type must be int!");
+		throw new RuntimeException("type must be int!2");
 	}
 
   public String visit (IfLt c) {
       if(c.type instanceof Type_int)
         return "if_icmplt " + "L" + c.label.label;
       else
-		throw new RuntimeException("type must be int!");
+		throw new RuntimeException("type must be int!3");
 	}
 
   public String visit (IfGe c) {
       if(c.type instanceof Type_int)
         return "if_icmpge " + "L" + c.label.label;
       else
-		throw new RuntimeException("type must be int!");
+		throw new RuntimeException("type must be int!4");
 	}
 
   public String visit (IfGt c) {
       if(c.type instanceof Type_int)
         return "if_icmpgt " + "L" + c.label.label;
       else
-		throw new RuntimeException("type must be int!");
+		throw new RuntimeException("type must be int!5");
 	}
 
   public String visit (IfLe c) {
       if(c.type instanceof Type_int)
         return "if_icmple " + "L" + c.label.label;
       else
-		throw new RuntimeException("type must be int!");
+		throw new RuntimeException("type must be int!6");
 	}
 
   public String visit (IfZ c) {
@@ -480,6 +480,5 @@ class CodeToJVM implements CodeVisitor<String> {
       throw new RuntimeException("Internal error: type must be numeric to div");
 	}
 
-  // TODO should return Jasmin Instructions for each class
 }
 

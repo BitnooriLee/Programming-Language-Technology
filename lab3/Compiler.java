@@ -318,7 +318,8 @@ public class Compiler
       emit (new Incr (ce.type, ce.addr, -1));
       return null;
     }
-
+    
+    //TODO
     // ++x
     public Void visit(CPP.Absyn.EPreIncr p, Void arg)
     {
@@ -464,13 +465,14 @@ public class Compiler
 		output.add(c.accept(new CodeToJVM()));
 		updateStack(c);
 	}
-//Question2 
+
   Integer newVar(String x, Type t) {
 		cxt.get(0).put(x, new CxtEntry(t,nextLocal));
 		Integer size = t.accept(new Size(), null);
+    Integer tmp = nextLocal;
 		nextLocal = nextLocal + size;
 		limitLocals = limitLocals + size;
-    return nextLocal;
+    return tmp;
   }
 
   CxtEntry lookupVar(String x) {
@@ -508,7 +510,7 @@ public class Compiler
     cxt.remove(0);
   }
   
-  //copy
+  //TODO
   class Size implements Type.Visitor<Integer,Void> {
 
     public Integer visit (Type_int t, Void arg) {
@@ -524,7 +526,7 @@ public class Compiler
           return 2;
     }
   }
-  //copy
+  //TODO
 	class UpdateStack implements CodeVisitor<Void> {
 		public Void visit (Store c) {
 			decStack(c.type);
