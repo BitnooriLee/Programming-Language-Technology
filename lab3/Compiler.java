@@ -7,13 +7,13 @@ public class Compiler
   LinkedList<String> output;
 
   // Signature mapping function names to their JVM name and type.
-  Map<String,Fun> sig;
+  Map<String,Fun> sig;  //Fun은 Code.java에 정의된 class
 
   // Context mapping variable identifiers to their type and address.
-  List<Map<String,CxtEntry>> cxt;
+  List<Map<String,CxtEntry>> cxt; // CxtEntry는 타입, 어드레스 정보를 가지고 있고, cxt는 이 맵들의 리스트! String: variable identifiers, CxtEntry: their type and address 
 
   // Next free address for local variable;
-  int nextLocal = 0;
+  int nextLocal = 0; //address 는 스택의 어드레스??
 
   // Number of locals needed for current function
   int limitLocals = 0;
@@ -272,7 +272,7 @@ public class Compiler
     // 5
     public Void visit(CPP.Absyn.EInt p, Void arg)
     {
-      emit (new IConst (p.integer_));
+      emit (new IConst (p.integer_)); //emit(Idc i)
       return null;
     }
 
@@ -327,6 +327,16 @@ public class Compiler
       CxtEntry ce = lookupVar(p.id_);
       emit (new Incr (ce.type, ce.addr, 1));
       return null;
+
+      /*
+      CxtEntry ce = lookupVar(p.id_);
+      emit(new Load(ce.type, ce.addr));
+      emit(new IConst(1));
+      emit(new Add(p.getType()));
+      emit(new Store(ce.type, ce.addr));
+      emit(new Load(ce.type, ce.addr));
+      */
+
     }
 
     // --x
@@ -415,25 +425,65 @@ public class Compiler
     // e <= e'
     public Void visit(CPP.Absyn.ELtEq p, Void arg)
     {
-      throw new RuntimeException ("TODO: compile " + CPP.PrettyPrinter.print(p));
+      p.exp_1.accept(new ExpVisitor(), arg);
+      p.exp_2.accept(new ExpVisitor(), arg);
+      Label yes  = new Label (nextLabel++);
+      Label done = new Label (nextLabel++);
+      emit (new IfLe(p.getType(), yes));
+      emit (new IConst(0));
+      emit (new Goto(done));
+      emit (new Target(yes));
+      emit (new IConst(1));
+      emit (new Target(done));
+      return null;
     }
 
     // e >= e'
     public Void visit(CPP.Absyn.EGtEq p, Void arg)
     {
-      throw new RuntimeException ("TODO: compile " + CPP.PrettyPrinter.print(p));
+      p.exp_1.accept(new ExpVisitor(), arg);
+      p.exp_2.accept(new ExpVisitor(), arg);
+      Label yes  = new Label (nextLabel++);
+      Label done = new Label (nextLabel++);
+      emit (new IfGe(p.getType(), yes));
+      emit (new IConst(0));
+      emit (new Goto(done));
+      emit (new Target(yes));
+      emit (new IConst(1));
+      emit (new Target(done));
+      return null;;
     }
 
     // e == e'
     public Void visit(CPP.Absyn.EEq p, Void arg)
     {
-      throw new RuntimeException ("TODO: compile " + CPP.PrettyPrinter.print(p));
+      p.exp_1.accept(new ExpVisitor(), arg);
+      p.exp_2.accept(new ExpVisitor(), arg);
+      Label yes  = new Label (nextLabel++);
+      Label done = new Label (nextLabel++);
+      emit (new IfEq(p.getType(), yes));
+      emit (new IConst(0));
+      emit (new Goto(done));
+      emit (new Target(yes));
+      emit (new IConst(1));
+      emit (new Target(done));
+      return null;
     }
 
     // e != e'
     public Void visit(CPP.Absyn.ENEq p, Void arg)
     {
-      throw new RuntimeException ("TODO: compile " + CPP.PrettyPrinter.print(p));
+      p.exp_1.accept(new ExpVisitor(), arg);
+      p.exp_2.accept(new ExpVisitor(), arg);
+      Label yes  = new Label (nextLabel++);
+      Label done = new Label (nextLabel++);
+      emit (new IfNe(p.getType(), yes));
+      emit (new IConst(0));
+      emit (new Goto(done));
+      emit (new Target(yes));
+      emit (new IConst(1));
+      emit (new Target(done));
+      return null;
     }
 
     // e && e'

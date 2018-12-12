@@ -5,13 +5,13 @@ public class TypeChecker {
     // Global signature of functions
     private Map<String, FunType> sig;
 
-    // Stack of contexts
+    // Stack of contexts 
     private List<Map<String,Type>> cxt;
 
     // Return type of function we are checking
     private Type returnType;
 
-    // Share type constants
+    // Share type constants // 생성자? Type이 부모 클래스임, CPP.Absy.Type_bool에 정의
     public final Type BOOL   = new Type_bool();
     public final Type INT    = new Type_int();
     public final Type DOUBLE = new Type_double();
@@ -34,8 +34,8 @@ public class TypeChecker {
             sig.put("readDouble" , new FunType(DOUBLE, new ListArg()));
 
             // Extend signature by all the definitions
-            for (Def d: p.listdef_) {
-                d.accept(new DefIntoSigVisitor(), null);
+            for (Def d: p.listdef_) { //이건 어디있음????
+                d.accept(new DefIntoSigVisitor(), null); //아랫부분에 정의
             }
 
             // Check definitions
@@ -62,7 +62,7 @@ public class TypeChecker {
 
     ////////////////////////////// Function //////////////////////////////
 
-    public class DefIntoSigVisitor implements Def.Visitor<Void,Void> {
+    public class DefIntoSigVisitor implements Def.Visitor<Void,Void> { //Funtion이 존재하는지 확인, 없으면 sig맵에 FunType을 넣어줌
         public Void visit(CPP.Absyn.DFun p, Void arg) {
             // Check that name is not present already
             if (sig.get(p.id_) != null)
@@ -71,7 +71,7 @@ public class TypeChecker {
             // Add function to signature
             FunType ft = new FunType (p.type_, p.listarg_);
             sig.put(p.id_, ft);
-            if (p.id_.equals("arg")&&p.type_ instanceof Type_void)
+            if (p.id_.equals("arg")&&p.type_ instanceof Type_void) //equals를 통해서 arg가 p.id_???
                 throw new TypeException ("Fucntion argument cannot be void");           
  
             return null;
@@ -80,12 +80,12 @@ public class TypeChecker {
 
     // Type check a function definition.
 
-    public class DefVisitor implements Def.Visitor<Void,Void> {
+    public class DefVisitor implements Def.Visitor<Void,Void> { 
         public Void visit(CPP.Absyn.DFun p, Void arg) {
             // set return type and initial context
             returnType = p.type_;
             cxt = new LinkedList();
-            cxt.add(new TreeMap());
+            cxt.add(new TreeMap()); //linkedList에 treeMap 을 추가
 
             // add all function parameters to context
             for (Arg a: p.listarg_) {
