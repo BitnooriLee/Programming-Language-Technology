@@ -3,6 +3,7 @@
 
 import CPP.Absyn.*;
 
+//각각의 class 들이 뭘 가지고 있는지 정의??  
 class Fun {
     public String id;
     public FunType funType;
@@ -25,13 +26,13 @@ class Label {
     }
 }
 
-abstract class Code {
+abstract class Code { 
     public abstract <R> R accept (CodeVisitor<R> v);
 }
 
-class Comment extends Code {
+class Comment extends Code { //extends Code 왜했지? accept를 통해서 visitor 가져 오려고? 이건 헤스켈의 패턴매칭 같은것인데 이해 안됨
   public String comment;
-  public Comment (String c) { comment = c; }
+  public Comment (String c) { comment = c; } //이게 생성자??
   public <R> R accept (CodeVisitor<R> v) {
     return v.visit(this);
   }
@@ -291,9 +292,7 @@ class Div extends Code {
 
 interface CodeVisitor<R> {
 
-
     public R visit (Target c);
-        //done
     public R visit (IConst c);
     public R visit (DConst c);
     public R visit (Comment c);
@@ -319,7 +318,7 @@ interface CodeVisitor<R> {
     public R visit (Div c);
 }
 
-class CodeToJVM implements CodeVisitor<String> {
+class CodeToJVM implements CodeVisitor<String> { //CodeToJVM은 visitor가 뭘하는지 function
  
 //TODO
 

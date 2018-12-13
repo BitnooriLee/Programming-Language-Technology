@@ -161,7 +161,7 @@ public class Compiler
     }
   }
 
-  // Compile single statement.
+  // Compile single statement. TODO: Void인 경우를 생각할 필요가 없나??
 
   public class StmVisitor implements Stm.Visitor<Void,Void>
   {
@@ -170,7 +170,8 @@ public class Compiler
     {
       emit (new Comment(CPP.PrettyPrinter.print(p)));
       p.exp_.accept (new ExpVisitor(), arg);
-      emit (new Pop(p.exp_.getType()));
+      emit (new Pop(new Type_int()));
+      //emit (new Pop(p.exp_.getType()));
       return null;
     }
 
@@ -193,13 +194,14 @@ public class Compiler
       return null;
     }
 
-    // return e;
+    // return e; //Q1 Type_void()인 경우를 어떻게 처리??? TODO: 
     public Void visit(CPP.Absyn.SReturn p, Void arg)
     {
       // p.exp_getType()
       emit (new Comment(CPP.PrettyPrinter.print(p)));
       p.exp_.accept (new ExpVisitor(), arg);
-      emit (new Return(p.exp_.getType()));
+      emit (new Return(new Type_int()));
+      //System.out.println(p.exp_.getType());
       return null;
     }
 
@@ -354,7 +356,7 @@ public class Compiler
       // p.exp_1 p.exp_2 p.getType()
       p.exp_1.accept (this, arg);
       p.exp_2.accept (this, arg);
-      emit (new Mul(p.getType()));
+      emit (new Mul(new Type_int()));
       return null;
     }
 
@@ -364,7 +366,7 @@ public class Compiler
       // p.exp_1 p.exp_2 p.getType()
       p.exp_1.accept (this, arg);
       p.exp_2.accept (this, arg);
-      emit (new Div(p.getType()));
+      emit (new Div(new Type_int()));
       return null;
     }
 
@@ -374,7 +376,7 @@ public class Compiler
       // p.exp_1 p.exp_2 p.getType()
       p.exp_1.accept (this, arg);
       p.exp_2.accept (this, arg);
-      emit (new Add(p.getType()));
+      emit (new Add(new Type_int()));
       return null;
     }
 
@@ -384,7 +386,7 @@ public class Compiler
       // p.exp_1 p.exp_2 p.getType()
       p.exp_1.accept (this, arg);
       p.exp_2.accept (this, arg);
-      emit (new Sub(p.getType()));
+      emit (new Sub(new Type_int()));
       return null;
     }
 
@@ -396,7 +398,7 @@ public class Compiler
       p.exp_2.accept(new ExpVisitor(), arg);
       Label yes  = new Label (nextLabel++);
       Label done = new Label (nextLabel++);
-      emit (new IfLt(p.getType(), yes));
+      emit (new IfLt(new Type_int(), yes));
       emit (new IConst(0)); //bipush 0?
       emit (new Goto(done));
       emit (new Target(yes));
@@ -413,7 +415,7 @@ public class Compiler
       p.exp_2.accept(new ExpVisitor(), arg);
       Label yes  = new Label (nextLabel++);
       Label done = new Label (nextLabel++);
-      emit (new IfGt(p.getType(), yes));
+      emit (new IfGt(new Type_int(), yes));
       emit (new IConst(0));
       emit (new Goto(done));
       emit (new Target(yes));
@@ -429,7 +431,7 @@ public class Compiler
       p.exp_2.accept(new ExpVisitor(), arg);
       Label yes  = new Label (nextLabel++);
       Label done = new Label (nextLabel++);
-      emit (new IfLe(p.getType(), yes));
+      emit (new IfLe(new Type_int(), yes));
       emit (new IConst(0));
       emit (new Goto(done));
       emit (new Target(yes));
@@ -445,13 +447,13 @@ public class Compiler
       p.exp_2.accept(new ExpVisitor(), arg);
       Label yes  = new Label (nextLabel++);
       Label done = new Label (nextLabel++);
-      emit (new IfGe(p.getType(), yes));
+      emit (new IfGe(new Type_int(), yes));
       emit (new IConst(0));
       emit (new Goto(done));
       emit (new Target(yes));
       emit (new IConst(1));
       emit (new Target(done));
-      return null;;
+      return null;
     }
 
     // e == e'
@@ -461,7 +463,7 @@ public class Compiler
       p.exp_2.accept(new ExpVisitor(), arg);
       Label yes  = new Label (nextLabel++);
       Label done = new Label (nextLabel++);
-      emit (new IfEq(p.getType(), yes));
+      emit (new IfEq(new Type_int(), yes));
       emit (new IConst(0));
       emit (new Goto(done));
       emit (new Target(yes));
@@ -477,7 +479,7 @@ public class Compiler
       p.exp_2.accept(new ExpVisitor(), arg);
       Label yes  = new Label (nextLabel++);
       Label done = new Label (nextLabel++);
-      emit (new IfNe(p.getType(), yes));
+      emit (new IfNe(new Type_int(), yes));
       emit (new IConst(0));
       emit (new Goto(done));
       emit (new Target(yes));

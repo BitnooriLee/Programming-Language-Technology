@@ -11,7 +11,7 @@ public class TypeChecker {
     // Return type of function we are checking
     private Type returnType;
 
-    // Share type constants // 생성자? Type이 부모 클래스임, CPP.Absy.Type_bool에 정의
+    // Share type constants // 생성자? Type(Asyn안에 있음)이 부모 클래스임, CPP.Absy.Type_bool에 정의
     public final Type BOOL   = new Type_bool();
     public final Type INT    = new Type_int();
     public final Type DOUBLE = new Type_double();

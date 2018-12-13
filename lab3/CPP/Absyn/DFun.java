@@ -9,7 +9,7 @@ public class DFun  extends Def {
 
   public <R,A> R accept(CPP.Absyn.Def.Visitor<R,A> v, A arg) { return v.visit(this, arg); }
 
-  public boolean equals(Object o) {
+  public boolean equals(Object o) { //여기서의 x하고 o, this 는 각각 뭘까? 그리고 이건 확인하는건지
     if (this == o) return true;
     if (o instanceof CPP.Absyn.DFun) {
       CPP.Absyn.DFun x = (CPP.Absyn.DFun)o;
