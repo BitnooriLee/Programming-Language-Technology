@@ -78,10 +78,10 @@ public class Compiler
     ListArg intArg = new ListArg();
     ListArg noArg = new ListArg();
     intArg.add (new ADecl(INT , "x"));
-    //noArg.add (new ADecl(null , "y"));
+
   
     sig.put("printInt",    new Fun ("Runtime/printInt"   , new FunType (VOID  , intArg)));
-    sig.put("readInt",    new Fun ("Runtime/readInt"   , new FunType (INT  ,intArg))); //no Argument..!!
+    sig.put("readInt",    new Fun ("Runtime/readInt"   , new FunType (INT  ,noArg))); //no Argument..!!
 
     // User-defined functions
     for (Def d: ((PDefs)p).listdef_) {
@@ -184,8 +184,11 @@ public class Compiler
     public Void visit(CPP.Absyn.SDecls p, Void arg)
     {
       emit (new Comment(CPP.PrettyPrinter.print(p)));
-      // for (String x: p.listid_) p.type_
-      throw new RuntimeException ("TODO: compile " + CPP.PrettyPrinter.print(p));
+      for (String x: p.listid_) {
+          newVar(x, p.type_);
+      }
+      return null;
+  
     }
 
     // int x = e;
@@ -517,7 +520,7 @@ public class Compiler
     public Void visit(CPP.Absyn.EAnd p, Void arg)
     {
       Label no  = new Label (nextLabel++);
-      emit (new IConst(0));
+      emit (new IConst(0)); //여기 이거 왜 두번 0을 넣음?
 			p.exp_1.accept(new ExpVisitor(), null);
 			emit(new IConst(0));
 			emit(new IfEq(new Type_int(), no));

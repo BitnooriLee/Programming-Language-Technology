@@ -331,7 +331,7 @@ class CodeToJVM implements CodeVisitor<String> { //CodeToJVM은 visitor가 뭘�
     }
 
   public String visit (Store c) {
-      if(c.type instanceof Type_int||c.type instanceof Type_void)
+      if(c.type instanceof Type_int||c.type instanceof Type_void||c.type instanceof Type_bool)
         return (c.addr >=0 && c.addr <=3)? "istore_"+ c.addr + "\n": "istore" + c.addr+ "\n";
       else if (c.type instanceof Type_double)
 		return (c.addr >=0 && c.addr <=3)? "dstore_"+ c.addr + "\n": "dstore" + c.addr+ "\n";
@@ -339,7 +339,7 @@ class CodeToJVM implements CodeVisitor<String> { //CodeToJVM은 visitor가 뭘�
 	}
 
   public String visit (Load c) {
-      if(c.type instanceof Type_int||c.type instanceof Type_void)
+      if(c.type instanceof Type_int||c.type instanceof Type_void||c.type instanceof Type_bool)
         return (c.addr >=0 && c.addr <=3)? "iload_"+ c.addr + "\n": "iload" + c.addr+ "\n";
       else if (c.type instanceof Type_double)
 		return (c.addr >=0 && c.addr <=3)? "dload_"+ c.addr+ "\n" : "dload" + c.addr+ "\n";
@@ -367,7 +367,7 @@ class CodeToJVM implements CodeVisitor<String> { //CodeToJVM은 visitor가 뭘�
 	} 
 
   public String visit (Pop c) {
-      if(c.type instanceof Type_int||c.type instanceof Type_void)
+      if(c.type instanceof Type_int||c.type instanceof Type_bool)
         return "pop"+ "\n";
       else if (c.type instanceof Type_double)
 		return "pop2"+ "\n";
@@ -375,7 +375,7 @@ class CodeToJVM implements CodeVisitor<String> { //CodeToJVM은 visitor가 뭘�
 	}    
 
   public String visit (Call c) {
-      return "invokestatic" + c.fun.toJVM()+ "\n";
+      return "invokestatic " + c.fun.toJVM()+ "\n";
 	} 
 
   public String visit (Goto c) {

@@ -28,7 +28,7 @@
 
   
   ;; int arg = readInt ();
-  invokestaticRuntime/readInt(I)I
+  invokestatic Runtime/readInt()I
   istore_0
   
   ;; int ret = 1;
@@ -76,7 +76,7 @@
   
   ;; printInt (ret);
   iload_1
-  invokestaticRuntime/printInt(I)V
+  invokestatic Runtime/printInt(I)V
   pop
   
   ;; return 0;
