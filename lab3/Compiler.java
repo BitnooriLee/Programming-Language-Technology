@@ -52,6 +52,7 @@ public class Compiler
     output.add("\n");
     output.add(".method public <init>()V\n");
     output.add("  .limit locals 1\n");
+    output.add("	.limit stack 1\n");
     output.add("\n");
     output.add("  aload_0\n");
     output.add("  invokespecial java/lang/Object/<init>()V\n");
@@ -73,10 +74,14 @@ public class Compiler
     // Create signature
     sig = new TreeMap();
 
-    // Built-in functions
+    // Built-in functions //Q4, Q5
     ListArg intArg = new ListArg();
+    ListArg noArg = new ListArg();
     intArg.add (new ADecl(INT , "x"));
+    //noArg.add (new ADecl(null , "y"));
+  
     sig.put("printInt",    new Fun ("Runtime/printInt"   , new FunType (VOID  , intArg)));
+    sig.put("readInt",    new Fun ("Runtime/readInt"   , new FunType (INT  ,intArg))); //no Argument..!!
 
     // User-defined functions
     for (Def d: ((PDefs)p).listdef_) {
@@ -210,12 +215,14 @@ public class Compiler
     {
       // p.exp_ p.stm_
       emit (new Comment("test while-condition (" + CPP.PrettyPrinter.print(p.exp_) + ")\n"));
+      emit (new Comment("while (" + CPP.PrettyPrinter.print(p.exp_) + ") do:\n"));
       Label start = new Label (nextLabel++);
       Label done  = new Label (nextLabel++);
       emit (new Target(start));
       p.exp_.accept (new ExpVisitor(), arg);
-      emit (new IfZ(done));
-      emit (new Comment("while (" + CPP.PrettyPrinter.print(p.exp_) + ") do:\n"));
+      //emit (new IfZ(done));
+      emit (new IConst(0)); //여기 두 라인은 good03.j 파일을 보고 수정한 것.. 하지만 위에꺼가 맞는것으로 보임
+      emit (new IfEq(new Type_int(), done));
       newBlock();
       p.stm_.accept (this, arg);
       popBlock();
@@ -262,13 +269,15 @@ public class Compiler
     // true
     public Void visit(CPP.Absyn.ETrue p, Void arg)
     {
-      throw new RuntimeException ("TODO: compile " + CPP.PrettyPrinter.print(p));
+     	emit(new IConst(1));
+			return null;
     }
 
     // false
     public Void visit(CPP.Absyn.EFalse p, Void arg)
     {
-      throw new RuntimeException ("TODO: compile " + CPP.PrettyPrinter.print(p));
+      emit(new IConst(0));
+			return null;
     }
 
     // 5
@@ -306,9 +315,12 @@ public class Compiler
     // x++
     public Void visit(CPP.Absyn.EPostIncr p, Void arg)
     {
-      // p.id_
       CxtEntry ce = lookupVar(p.id_);
-      emit (new Incr (ce.type, ce.addr, 1));
+      emit(new Load(ce.type, ce.addr));
+      emit(new Dup(new Type_int()));
+      emit(new IConst(1));
+      emit(new Add(new Type_int()));
+      emit(new Store(ce.type, ce.addr));
       return null;
     }
 
@@ -317,7 +329,11 @@ public class Compiler
     {
       // p.id_
       CxtEntry ce = lookupVar(p.id_);
-      emit (new Incr (ce.type, ce.addr, -1));
+      emit(new Load(ce.type, ce.addr));
+      emit(new Dup(new Type_int()));
+      emit(new IConst(1));
+      emit(new Sub(new Type_int()));
+      emit(new Store(ce.type, ce.addr));
       return null;
     }
     
@@ -326,18 +342,18 @@ public class Compiler
     public Void visit(CPP.Absyn.EPreIncr p, Void arg)
     {
       // p.id_
+      /*
       CxtEntry ce = lookupVar(p.id_);
       emit (new Incr (ce.type, ce.addr, 1));
       return null;
-
-      /*
+      */
       CxtEntry ce = lookupVar(p.id_);
       emit(new Load(ce.type, ce.addr));
       emit(new IConst(1));
-      emit(new Add(p.getType()));
+      emit(new Add(new Type_int()));
       emit(new Store(ce.type, ce.addr));
       emit(new Load(ce.type, ce.addr));
-      */
+      return null;
 
     }
 
@@ -345,9 +361,17 @@ public class Compiler
     public Void visit(CPP.Absyn.EPreDecr p, Void arg)
     {
       // p.id_
-      CxtEntry ce = lookupVar(p.id_);
+     /* CxtEntry ce = lookupVar(p.id_);
       emit (new Incr (ce.type, ce.addr, -1));
+      return null;*/
+      CxtEntry ce = lookupVar(p.id_);
+      emit(new Load(ce.type, ce.addr));
+      emit(new IConst(1));
+      emit(new Sub(new Type_int()));
+      emit(new Store(ce.type, ce.addr));
+      emit(new Load(ce.type, ce.addr));
       return null;
+
     }
 
     // e * e'
@@ -486,18 +510,53 @@ public class Compiler
       emit (new IConst(1));
       emit (new Target(done));
       return null;
+      
     }
-
+    //:TODO
     // e && e'
     public Void visit(CPP.Absyn.EAnd p, Void arg)
     {
-      throw new RuntimeException ("TODO: compile " + CPP.PrettyPrinter.print(p));
+      Label no  = new Label (nextLabel++);
+      emit (new IConst(0));
+			p.exp_1.accept(new ExpVisitor(), null);
+			emit(new IConst(0));
+			emit(new IfEq(new Type_int(), no));
+			p.exp_2.accept(new ExpVisitor(), null);
+			emit(new IConst(0));
+			emit(new IfEq(new Type_int(), no));
+			//if no, pop 0 
+			emit(new Pop(new Type_int()));
+			//push 1 - tell them their life was indeed true
+			emit(new IConst(1));
+			//false label
+			emit(new Target(no));
+			return null;
+      
     }
-
+    //:TODO
     // e || e'
     public Void visit(CPP.Absyn.EOr p, Void arg)
     {
-      throw new RuntimeException ("TODO: compile " + CPP.PrettyPrinter.print(p));
+      Label yes = new Label (nextLabel++);
+			//assuming true
+			emit(new IConst(1));
+			p.exp_1.accept(new ExpVisitor(), null);
+			//check if 1
+			//if yes, jump to true
+			emit(new IConst(1));
+			emit(new IfEq(new Type_int(), yes));
+			p.exp_2.accept(new ExpVisitor(), null);
+			//check if 1
+			//if yes, jump to true
+			emit(new IConst(1));
+			emit(new IfEq(new Type_int(), yes));
+			//if no, pop1
+			emit(new Pop(new Type_int()));
+			//push 0 - tell them their life was a lie
+			emit(new IConst(0));
+			//true label
+			emit(new Target(yes));
+			return null;
     }
 
     // x = e
@@ -575,7 +634,7 @@ public class Compiler
         return 0;
     }
     public Integer visit (Type_double t, Void arg) {
-          return 2;
+        return 2;
     }
   }
   //TODO

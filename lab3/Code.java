@@ -323,7 +323,7 @@ class CodeToJVM implements CodeVisitor<String> { //CodeToJVM은 visitor가 뭘�
 //TODO
 
   public String visit (Target c) {
-		return "L" + c.label + ":";
+		return "L" + c.label.label + ":" + "\n" ;
 	}
   
   public String visit (Comment c) {
@@ -332,26 +332,26 @@ class CodeToJVM implements CodeVisitor<String> { //CodeToJVM은 visitor가 뭘�
 
   public String visit (Store c) {
       if(c.type instanceof Type_int||c.type instanceof Type_void)
-        return (c.addr >=0 && c.addr <=3)? "istore_"+ c.addr : "istore" + c.addr;
+        return (c.addr >=0 && c.addr <=3)? "istore_"+ c.addr + "\n": "istore" + c.addr+ "\n";
       else if (c.type instanceof Type_double)
-		return (c.addr >=0 && c.addr <=3)? "dstore_"+ c.addr : "dstore" + c.addr;
+		return (c.addr >=0 && c.addr <=3)? "dstore_"+ c.addr + "\n": "dstore" + c.addr+ "\n";
       throw new RuntimeException("Wrong Type for store!");
 	}
 
   public String visit (Load c) {
       if(c.type instanceof Type_int||c.type instanceof Type_void)
-        return (c.addr >=0 && c.addr <=3)? "iload_"+ c.addr : "iload" + c.addr;
+        return (c.addr >=0 && c.addr <=3)? "iload_"+ c.addr + "\n": "iload" + c.addr+ "\n";
       else if (c.type instanceof Type_double)
-		return (c.addr >=0 && c.addr <=3)? "dload_"+ c.addr : "dload" + c.addr;
+		return (c.addr >=0 && c.addr <=3)? "dload_"+ c.addr+ "\n" : "dload" + c.addr+ "\n";
       throw new RuntimeException("Wrong Type for load!");
 	}
 
   public String visit (IConst c) {
       int i = c.immed.intValue();
-      if (i == -1) return "iconst_m1";
-      if (i >= 0 && i <= 5) return "iconst_" + i;
-      if (i >= -128 && i < 128) return "bipush " + i;
-      return "ldc " + c.immed.toString();
+      if (i == -1) return "iconst_m1"+ "\n";
+      if (i >= 0 && i <= 5) return "iconst_" + i+ "\n";
+      if (i >= -128 && i < 128) return "bipush " + i+ "\n";
+      return "ldc " + c.immed.toString()+ "\n";
     }
 
   public String visit (DConst c) {
@@ -360,26 +360,26 @@ class CodeToJVM implements CodeVisitor<String> { //CodeToJVM은 visitor가 뭘�
 
   public String visit (Dup c) {
       if(c.type instanceof Type_int||c.type instanceof Type_void)
-        return "dup";
+        return "dup"+ "\n";
       else if (c.type instanceof Type_double)
-		return "dup2";
+		return "dup2"+ "\n";
       return ""; // "nop"?????
 	} 
 
   public String visit (Pop c) {
       if(c.type instanceof Type_int||c.type instanceof Type_void)
-        return "pop";
+        return "pop"+ "\n";
       else if (c.type instanceof Type_double)
-		return "pop2";
+		return "pop2"+ "\n";
       return ""; // "nop"?????
 	}    
 
   public String visit (Call c) {
-      return "invokestatic" + c.fun.toJVM();
+      return "invokestatic" + c.fun.toJVM()+ "\n";
 	} 
 
   public String visit (Goto c) {
-      return "goto" + "L" + c.label.label;
+      return "goto" +" "+ "L" + c.label.label+ "\n";
 	} 
 
   public String visit (Return c) {
@@ -394,88 +394,88 @@ class CodeToJVM implements CodeVisitor<String> { //CodeToJVM은 visitor가 뭘�
 
   public String visit (IfEq c) {
       if(c.type instanceof Type_int)
-        return "if_icmpeq " + "L" + c.label.label;
+        return "if_icmpeq " +" "+ "L" + c.label.label+ "\n";
       else
 		throw new RuntimeException("type must be int1!");
 	}
   
   public String visit (IfNe c) {
       if(c.type instanceof Type_int)
-        return "if_icmpne " + "L" + c.label.label;
+        return "if_icmpne " +" "+ "L" + c.label.label+ "\n";
       else
 		throw new RuntimeException("type must be int!2");
 	}
 
   public String visit (IfLt c) {
       if(c.type instanceof Type_int)
-        return "if_icmplt " + "L" + c.label.label;
+        return "if_icmplt " +" "+ "L" + c.label.label+ "\n";
       else
 		throw new RuntimeException("type must be int!3");
 	}
 
   public String visit (IfGe c) {
       if(c.type instanceof Type_int)
-        return "if_icmpge " + "L" + c.label.label;
+        return "if_icmpge " +" "+ "L" + c.label.label+ "\n";
       else
 		throw new RuntimeException("type must be int!4");
 	}
 
   public String visit (IfGt c) {
       if(c.type instanceof Type_int)
-        return "if_icmpgt " + "L" + c.label.label;
+        return "if_icmpgt " +" "+ "L" + c.label.label+ "\n";
       else
 		throw new RuntimeException("type must be int!5");
 	}
 
   public String visit (IfLe c) {
       if(c.type instanceof Type_int)
-        return "if_icmple " + "L" + c.label.label;
+        return "if_icmple " +" "+ "L" + c.label.label+ "\n";
       else
 		throw new RuntimeException("type must be int!6");
 	}
 
   public String visit (IfZ c) {
-      return "ifeq" + "L" + c.label.label;
+      return "ifeq" +" "+ "L" + c.label.label+ "\n";
 	} 
 
   public String visit (IfNZ c) {
-      return "ifne" + "L" + c.label.label;
+      return "ifne" +" "+ "L" + c.label.label+ "\n";
 	} 
 
   public String visit (Incr c) {
       if(c.type instanceof Type_int)
-		return "iinc " + c.addr + " " +c.increment;
+		return "iinc " + c.addr + " " +c.increment+ "\n";
       throw new RuntimeException("Internal error: type must be int to incr");
 	}
   public String visit (Add c) {
       if(c.type instanceof Type_int)
-        return "iadd";
+        return "iadd"+ "\n";
       else if (c.type instanceof Type_double)
-		return "dadd";
+		return "dadd"+ "\n";
       throw new RuntimeException("Internal error: type must be numeric to add");
 	}
 
   public String visit (Sub c) {
       if(c.type instanceof Type_int)
-		return "isub";
+		return "isub"+ "\n";
       else if (c.type instanceof Type_double)
-		return "dsub";
+		return "dsub"+ "\n";
       throw new RuntimeException("Internal error: type must be numeric to sub");
 	}
 
   public String visit (Mul c) {
       if(c.type instanceof Type_int)
-		return "imul";
+		return "imul"+ "\n";
       else if (c.type instanceof Type_double)
-		return "dmul";
+		return "dmul"+ "\n";
       throw new RuntimeException("Internal error: type must be numeric to mul");
 	}
 
   public String visit (Div c) {
 	  if(c.type instanceof Type_int)
-        return "idiv";
+        return "idiv"+ "\n";
 	  else if (c.type instanceof Type_double)
-		return "ddiv";
+		return "ddiv"+ "\n";
       throw new RuntimeException("Internal error: type must be numeric to div");
 	}
 
