@@ -3,6 +3,7 @@
 
 .method public <init>()V
   .limit locals 1
+	.limit stack 1
 
   aload_0
   invokespecial java/lang/Object/<init>()V
@@ -27,27 +28,70 @@
 
   
   ;; int n = 10;
-  bipush 10  istore_0  
+  bipush 10
+  istore_0
+  
   ;; int i = 0;
-  iconst_0  istore_1  
+  iconst_0
+  istore_1
+  
   ;; int j = 1;
-  iconst_1  istore_2  
+  iconst_1
+  istore_2
+  
   ;; int k = 0;
-  iconst_0  istore_3  
+  iconst_0
+  istore_3
+  
   ;; test while-condition (k < n)
-  LLabel@3567135c:  iload_3  iload_0  if_icmplt L2  iconst_0  gotoL3  LLabel@47f6473:  iconst_1  LLabel@15975490:  ifeqL1  
+  
   ;; while (k < n) do:
+  L0:
+  iload_3
+  iload_0
+  if_icmplt  L2
+  iconst_0
+  goto L3
+  L2:
+  iconst_1
+  L3:
+  iconst_0
+  if_icmpeq  L1
   
   ;; int h = j;
-  iload_2  istore4  
+  iload_2
+  istore4
+  
   ;; j = j + i;
-  iload_2  iload_1  iadd  istore_2  iload_2  pop  
+  iload_2
+  iload_1
+  iadd
+  istore_2
+  iload_2
+  pop
+  
   ;; i = h;
-  iload4  istore_1  iload_1  pop  
+  iload4
+  istore_1
+  iload_1
+  pop
+  
   ;; k = k + 1;
-  iload_3  iconst_1  iadd  istore_3  iload_3  pop  gotoL0  LLabel@4909b8da:  
+  iload_3
+  iconst_1
+  iadd
+  istore_3
+  iload_3
+  pop
+  goto L0
+  L1:
+  
   ;; printInt (i);
-  iload_1  invokestaticRuntime/printInt(I)V  pop  
+  iload_1
+  invokestatic Runtime/printInt(I)V
+  pop
+  
   ;; return 0;
-  iconst_0  ireturn
+  iconst_0
+  ireturn
 .end method

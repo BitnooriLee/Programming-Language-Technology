@@ -78,7 +78,6 @@ public class Compiler
     ListArg intArg = new ListArg();
     ListArg noArg = new ListArg();
     intArg.add (new ADecl(INT , "x"));
-
   
     sig.put("printInt",    new Fun ("Runtime/printInt"   , new FunType (VOID  , intArg)));
     sig.put("readInt",    new Fun ("Runtime/readInt"   , new FunType (INT  ,noArg))); //no Argument..!!
@@ -150,6 +149,16 @@ public class Compiler
       for (String s: newOutput) {
         output.add("  " + s);
       }
+
+   		if(voidReturn(p)){
+				if(p.id_.equals("main")){
+					output.add("	iconst_0");
+					output.add("	ireturn");
+				} else {
+					output.add("	return");
+				}
+			}
+
       output.add("\n.end method\n");
       return null;
     }
@@ -612,6 +621,19 @@ public class Compiler
 		currentStack = currentStack - t.accept(new Size(), null);
 	}
 
+
+
+	boolean voidReturn(DFun fun){
+		for(Stm s : fun.liststm_){
+			//ret stm found
+			if(s instanceof SReturn)
+				return false;
+		}
+		//no ret stm found
+		return true;
+	}
+
+
   String newLabel(String prefix){
 		return prefix + (nextLabel++);
 	}
@@ -681,7 +703,9 @@ public class Compiler
 		}
 
 		public Void visit (Call c) {
-			incStack(c.fun.funType.returnType);
+      //if(!(c.fun.funType.returnType instanceof Type_void)){
+			//incStack(c.fun.funType.returnType);}
+     // System.out.println(c.fun.funType.returnType instanceof Type_void);
 			return null;
 		}
 

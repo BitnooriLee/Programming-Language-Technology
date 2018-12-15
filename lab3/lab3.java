@@ -42,6 +42,7 @@ public class lab3 {
       writer.close();
 
       // Call jasmin to create .class file.
+      
       String[] jasminCall = new String[]{"jasmin", "-d", dir, jFile};
       Process process = java.lang.Runtime.getRuntime().exec(jasminCall);
       int exitValue = process.waitFor();
@@ -96,3 +97,4 @@ public class lab3 {
     else return filename.substring(0, divider);
   }
 }
+

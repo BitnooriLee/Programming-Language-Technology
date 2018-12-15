@@ -24,7 +24,7 @@
 
 .method public static main()I
   .limit locals 3
-  .limit stack 3
+  .limit stack 2
 
   
   ;; int arg = readInt ();
