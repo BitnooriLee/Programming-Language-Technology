@@ -186,24 +186,24 @@ public class TypeChecker {
 
         // Literals
         public Type visit(CPP.Absyn.ETrue p, Void arg) {
-            return BOOL;
+            return p.setType(BOOL);
         }
         
         public Type visit(CPP.Absyn.EFalse p, Void arg) {
-            return BOOL;
+            return p.setType(BOOL);
         }
 
         public Type visit(CPP.Absyn.EInt p, Void arg) {
-            return INT;
+            return p.setType(INT);
         }
 
         public Type visit(CPP.Absyn.EDouble p, Void arg) {
-            return DOUBLE;
+            return p.setType(DOUBLE);
         }
 
         // Variable
         public Type visit(CPP.Absyn.EId p, Void arg) {
-            return lookupVar(p.id_);
+            return p.setType(lookupVar(p.id_));
         }
 
         // Function call
@@ -220,29 +220,29 @@ public class TypeChecker {
                 check(a.type_, e.accept(new ExpVisitor(), arg));
                 i++;
             }
-            return ft.returnType;
+            return p.setType(ft.returnType);
         }
 
         // Increment, decrement
 
         public Type visit(CPP.Absyn.EPostIncr p, Void arg) { 
             Type t = numericType(lookupVar(p.id_));
-            return t;
+            return p.setType(t);
         }
 
         public Type visit(CPP.Absyn.EPostDecr p, Void arg) { 
             Type t = numericType(lookupVar(p.id_));
-            return t;
+            return p.setType(t);
         }
 
         public Type visit(CPP.Absyn.EPreIncr p, Void arg) { 
             Type t = numericType(lookupVar(p.id_));
-            return t;
+            return p.setType(t);
         }
 
         public Type visit(CPP.Absyn.EPreDecr p, Void arg) { 
             Type t = numericType(lookupVar(p.id_));
-            return t;
+            return p.setType(t);
         }
 
         // Arithmetical operators
@@ -253,7 +253,7 @@ public class TypeChecker {
             numericType(t1);
             numericType(t2);
          check(t1, t2);
-         return t1;
+         return p.setType(t1);
         }
 
         public Type visit(CPP.Absyn.EDiv p, Void arg) { 
@@ -262,7 +262,7 @@ public class TypeChecker {
          numericType(t1);
             numericType(t2);
          check(t1, t2);
-         return t1;
+         return p.setType(t1);
         }
 
         public Type visit(CPP.Absyn.EPlus p, Void arg) { 
@@ -271,7 +271,7 @@ public class TypeChecker {
          numericType(t1);
             numericType(t2);
          check(t1, t2);
-         return t1;
+         return p.setType(t1);
         }
 
         public Type visit(CPP.Absyn.EMinus p, Void arg) { 
@@ -280,7 +280,7 @@ public class TypeChecker {
          numericType(t1);
             numericType(t2);
          check(t1, t2);
-         return t1;
+         return p.setType(t1);
         }
 
         // Comparison operators
@@ -291,7 +291,7 @@ public class TypeChecker {
             numericType(t1);
             numericType(t2);
             equalTypes(t1, t2);
-            return BOOL;
+            return p.setType(BOOL);
         }
 
         public Type visit(CPP.Absyn.EGt p, Void arg) { 
@@ -300,7 +300,7 @@ public class TypeChecker {
             numericType(t1);
             numericType(t2);
             equalTypes(t1, t2);
-            return BOOL;
+            return p.setType(BOOL);
         }
 
         public Type visit(CPP.Absyn.ELtEq p, Void arg) { 
@@ -309,7 +309,7 @@ public class TypeChecker {
             numericType(t1);
             numericType(t2);
             equalTypes(t1, t2);
-            return BOOL;
+            return p.setType(BOOL);
         }
 
         public Type visit(CPP.Absyn.EGtEq p, Void arg) { 
@@ -318,7 +318,7 @@ public class TypeChecker {
             numericType(t1);
             numericType(t2);
             equalTypes(t1, t2);
-            return BOOL;
+            return p.setType(BOOL);
         }
 
         // Equality operators
@@ -328,7 +328,7 @@ public class TypeChecker {
             Type t2 = p.exp_2.accept(new ExpVisitor(), arg);
          equalTypes(t1, t2);
          check(t1, t2);
-         return BOOL;
+         return p.setType(BOOL);
         }
 
         public Type visit(CPP.Absyn.ENEq p, Void arg) { 
@@ -336,7 +336,7 @@ public class TypeChecker {
             Type t2 = p.exp_2.accept(new ExpVisitor(), arg);
          equalTypes(t1, t2);
          check(t1, t2);
-         return BOOL;
+         return p.setType(BOOL);
         }
 
         // Logic operators
@@ -346,7 +346,7 @@ public class TypeChecker {
             Type t2 = p.exp_2.accept(new ExpVisitor(), arg);
             check(t1, BOOL);
          check(t2, BOOL);
-         return BOOL;
+         return p.setType(BOOL);
         }
 
         public Type visit(CPP.Absyn.EOr p, Void arg) { 
@@ -354,14 +354,14 @@ public class TypeChecker {
             Type t2 = p.exp_2.accept(new ExpVisitor(), arg);
             check(t1, BOOL);
          check(t2, BOOL);
-         return BOOL;
+         return p.setType(BOOL);
         }
 
         // Assignment
         public Type visit(CPP.Absyn.EAss p, Void arg) { 
             Type varType = lookupVar(p.id_);
             check(varType, p.exp_.accept(new ExpVisitor(), arg));
-            return varType;
+            return p.setType(varType);
         }
     }
 

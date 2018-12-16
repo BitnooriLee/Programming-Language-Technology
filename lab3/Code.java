@@ -3,7 +3,7 @@
 
 import CPP.Absyn.*;
 
-//각각의 class 들이 뭘 가지고 있는지 정의??  
+//class
 class Fun {
     public String id;
     public FunType funType;
@@ -16,7 +16,7 @@ class Fun {
     }
 }
 
-class Label {
+class Label{
     public int label;
     public Label (int label) {
         this.label = label;
@@ -30,7 +30,7 @@ abstract class Code {
     public abstract <R> R accept (CodeVisitor<R> v);
 }
 
-class Comment extends Code { //extends Code 왜했지? accept를 통해서 visitor 가져 오려고? 이건 헤스켈의 패턴매칭 같은것인데 이해 안됨
+class Comment extends Code { //extends Code call visitor with accept 
   public String comment;
   public Comment (String c) { comment = c; } //이게 생성자??
   public <R> R accept (CodeVisitor<R> v) {
@@ -320,8 +320,6 @@ interface CodeVisitor<R> {
 
 class CodeToJVM implements CodeVisitor<String> { //CodeToJVM은 visitor가 뭘하는지 function
  
-//TODO
-
   public String visit (Target c) {
 		return "L" + c.label.label + ":" + "\n" ;
 	}
@@ -332,17 +330,17 @@ class CodeToJVM implements CodeVisitor<String> { //CodeToJVM은 visitor가 뭘�
 
   public String visit (Store c) {
       if(c.type instanceof Type_int||c.type instanceof Type_void||c.type instanceof Type_bool)
-        return (c.addr >=0 && c.addr <=3)? "istore_"+ c.addr + "\n": "istore" + c.addr+ "\n";
+        return (c.addr >=0 && c.addr <=3)? "istore_"+ c.addr + "\n": "istore " + c.addr+ "\n";
       else if (c.type instanceof Type_double)
-		return (c.addr >=0 && c.addr <=3)? "dstore_"+ c.addr + "\n": "dstore" + c.addr+ "\n";
+		return (c.addr >=0 && c.addr <=3)? "dstore_"+ c.addr + "\n": "dstore " + c.addr+ "\n";
       throw new RuntimeException("Wrong Type for store!");
 	}
 
   public String visit (Load c) {
       if(c.type instanceof Type_int||c.type instanceof Type_void||c.type instanceof Type_bool)
-        return (c.addr >=0 && c.addr <=3)? "iload_"+ c.addr + "\n": "iload" + c.addr+ "\n";
+        return (c.addr >=0 && c.addr <=3)? "iload_"+ c.addr + "\n": "iload " + c.addr+ "\n";
       else if (c.type instanceof Type_double)
-		return (c.addr >=0 && c.addr <=3)? "dload_"+ c.addr+ "\n" : "dload" + c.addr+ "\n";
+		return (c.addr >=0 && c.addr <=3)? "dload_"+ c.addr+ "\n" : "dload " + c.addr+ "\n";
       throw new RuntimeException("Wrong Type for load!");
 	}
 
@@ -369,9 +367,9 @@ class CodeToJVM implements CodeVisitor<String> { //CodeToJVM은 visitor가 뭘�
   public String visit (Pop c) {
       if(c.type instanceof Type_int||c.type instanceof Type_bool)
         return "pop"+ "\n";
-      else if (c.type instanceof Type_double)
-		return "pop2"+ "\n";
-      return ""; // "nop"?????
+      else if (c.type instanceof Type_void)
+		return "nop"+ "\n";
+      return ""; 
 	}    
 
   public String visit (Call c) {
@@ -383,12 +381,12 @@ class CodeToJVM implements CodeVisitor<String> { //CodeToJVM은 visitor가 뭘�
 	} 
 
   public String visit (Return c) {
-      if(c.type instanceof Type_int)
-        return "ireturn";
+      if(c.type instanceof Type_int||c.type instanceof Type_bool)
+        return "ireturn\n";
       else if (c.type instanceof Type_double)
-		return "dreturn";
+		return "dreturn\n";
       else if (c.type instanceof Type_void)
-		return "return"; 
+		return "return\n"; 
       throw new RuntimeException("Wrong Type for return!");
 	}
 

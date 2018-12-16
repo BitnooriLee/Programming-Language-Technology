@@ -3,6 +3,7 @@
 
 .method public <init>()V
   .limit locals 1
+	.limit stack 1
 
   aload_0
   invokespecial java/lang/Object/<init>()V
@@ -25,9 +26,12 @@
   .limit locals 1
   .limit stack 2
 
+  bipush 50
+  iconst_5
+  iadd
+  istore_0
   
-  ;; int x = 50 + 5;
-  bipush 50  iconst_5  iadd  istore_0  
   ;; return 0;
-  iconst_0  ireturn
+  iconst_0
+  ireturn
 .end method

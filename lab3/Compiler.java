@@ -76,11 +76,10 @@ public class Compiler
 
     // Built-in functions //Q4, Q5
     ListArg intArg = new ListArg();
-    ListArg noArg = new ListArg();
+    //ListArg noArg = new ListArg();
     intArg.add (new ADecl(INT , "x"));
-  
     sig.put("printInt",    new Fun ("Runtime/printInt"   , new FunType (VOID  , intArg)));
-    sig.put("readInt",    new Fun ("Runtime/readInt"   , new FunType (INT  ,noArg))); //no Argument..!!
+    sig.put("readInt",    new Fun ("Runtime/readInt"   , new FunType (INT  ,new ListArg()))); //no Argument..!!
 
     // User-defined functions
     for (Def d: ((PDefs)p).listdef_) {
@@ -146,19 +145,22 @@ public class Compiler
       output.add("\n.method public static " + f.toJVM() + "\n");
       output.add("  .limit locals " + limitLocals + "\n");
       output.add("  .limit stack " + limitStack + "\n\n");
+      
       for (String s: newOutput) {
         output.add("  " + s);
       }
 
-   		if(voidReturn(p)){
-				if(p.id_.equals("main")){
-					output.add("	iconst_0");
-					output.add("	ireturn");
-				} else {
-					output.add("	return");
-				}
+      //if fucntion has no return 
+   		if(!voidReturn(p)){
+				 if(p.id_.equals("main")){
+					 output.add("	iconst_0\n");
+					 output.add("	ireturn\n");
+				 } else {
+           // return is void 
+				  	output.add("	return\n");
+				 }
 			}
-
+      
       output.add("\n.end method\n");
       return null;
     }
@@ -184,8 +186,7 @@ public class Compiler
     {
       emit (new Comment(CPP.PrettyPrinter.print(p)));
       p.exp_.accept (new ExpVisitor(), arg);
-      emit (new Pop(new Type_int()));
-      //emit (new Pop(p.exp_.getType()));
+      emit (new Pop(p.exp_.getType()));
       return null;
     }
 
@@ -209,16 +210,22 @@ public class Compiler
       int addr = newVar (p.id_, p.type_);
       emit (new Store (p.type_, addr));
       return null;
+
+      /*newVar(p.id_, p.type_);
+			p.exp_.accept(new ExpVisitor(), null);
+			CxtEntry ce = lookupVar(p.id_);
+			emit (new Store(ce.type, ce.addr));
+			return null;*/
     }
 
-    // return e; //Q1 Type_void()인 경우를 어떻게 처리??? TODO: 
+    // return e; //Q1 Type_void()인 경우를 어떻게 처리??? 
     public Void visit(CPP.Absyn.SReturn p, Void arg)
     {
       // p.exp_getType()
       emit (new Comment(CPP.PrettyPrinter.print(p)));
       p.exp_.accept (new ExpVisitor(), arg);
-      emit (new Return(new Type_int()));
-      //System.out.println(p.exp_.getType());
+      emit (new Return(p.exp_.getType()));
+
       return null;
     }
 
@@ -318,7 +325,7 @@ public class Compiler
     public Void visit(CPP.Absyn.EApp p, Void arg)
     {
       // p.id_
-      for (Exp e: p.listexp_) e.accept (new ExpVisitor(), arg);
+      for (Exp e: p.listexp_) e.accept (this, arg);
       Fun f = sig.get(p.id_);
       emit (new Call(f));
       return null;
@@ -329,9 +336,9 @@ public class Compiler
     {
       CxtEntry ce = lookupVar(p.id_);
       emit(new Load(ce.type, ce.addr));
-      emit(new Dup(new Type_int()));
+      emit(new Dup(ce.type));
       emit(new IConst(1));
-      emit(new Add(new Type_int()));
+      emit(new Add(ce.type));
       emit(new Store(ce.type, ce.addr));
       return null;
     }
@@ -342,23 +349,18 @@ public class Compiler
       // p.id_
       CxtEntry ce = lookupVar(p.id_);
       emit(new Load(ce.type, ce.addr));
-      emit(new Dup(new Type_int()));
+      emit(new Dup(ce.type));
       emit(new IConst(1));
-      emit(new Sub(new Type_int()));
+      emit(new Sub(ce.type));
       emit(new Store(ce.type, ce.addr));
       return null;
     }
     
-    //TODO
+
     // ++x
     public Void visit(CPP.Absyn.EPreIncr p, Void arg)
     {
-      // p.id_
-      /*
-      CxtEntry ce = lookupVar(p.id_);
-      emit (new Incr (ce.type, ce.addr, 1));
-      return null;
-      */
+  
       CxtEntry ce = lookupVar(p.id_);
       emit(new Load(ce.type, ce.addr));
       emit(new IConst(1));
@@ -372,14 +374,10 @@ public class Compiler
     // --x
     public Void visit(CPP.Absyn.EPreDecr p, Void arg)
     {
-      // p.id_
-     /* CxtEntry ce = lookupVar(p.id_);
-      emit (new Incr (ce.type, ce.addr, -1));
-      return null;*/
       CxtEntry ce = lookupVar(p.id_);
       emit(new Load(ce.type, ce.addr));
       emit(new IConst(1));
-      emit(new Sub(new Type_int()));
+      emit(new Sub(ce.type));
       emit(new Store(ce.type, ce.addr));
       emit(new Load(ce.type, ce.addr));
       return null;
@@ -585,10 +583,15 @@ public class Compiler
   } // or Dup, Store
 
   void emit (Code c) {
-		output.add(c.accept(new CodeToJVM()));
+    String line = c.accept(new CodeToJVM());
+		if (!line.isEmpty()) {
+			output.add(line);
+		}
+		//output.add(c.accept(new CodeToJVM()));
 		updateStack(c);
 	}
 
+  
   Integer newVar(String x, Type t) {
 		cxt.get(0).put(x, new CxtEntry(t,nextLocal));
 		Integer size = t.accept(new Size(), null);
@@ -597,6 +600,19 @@ public class Compiler
 		limitLocals = limitLocals + size;
     return tmp;
   }
+
+ 	/*void newVar(String s, Type t) {
+		// Get top block of context
+		Map<String,CxtEntry> m = cxt.get(0);
+		// Add variable to context with nextLocal addr
+		CxtEntry ce = new CxtEntry(t, nextLocal);
+		m.put(s, ce);
+		// inc nextLocal
+		++nextLocal;
+		if (nextLocal > limitLocals) {
+			limitLocals = nextLocal;
+		}
+	}*/
 
   CxtEntry lookupVar(String x) {
     for (Map<String, CxtEntry> m: cxt) {
@@ -624,13 +640,12 @@ public class Compiler
 
 
 	boolean voidReturn(DFun fun){
-		for(Stm s : fun.liststm_){
-			//ret stm found
-			if(s instanceof SReturn)
-				return false;
+		for (Stm s : fun.liststm_) {
+			if (s instanceof SReturn) {
+  			return true;
+			}
 		}
-		//no ret stm found
-		return true;
+		return false;
 	}
 
 
@@ -699,13 +714,18 @@ public class Compiler
 		}
 
 		public Void visit (Return c) {
+      decStack(c.type);
 			return null;
 		}
 
 		public Void visit (Call c) {
       //if(!(c.fun.funType.returnType instanceof Type_void)){
 			//incStack(c.fun.funType.returnType);}
-     // System.out.println(c.fun.funType.returnType instanceof Type_void);
+   		FunType ft = c.fun.funType;
+			for (Arg a : ft.args) {
+				decStack(((ADecl)a).type_);
+			}
+			incStack(ft.returnType);
 			return null;
 		}
 

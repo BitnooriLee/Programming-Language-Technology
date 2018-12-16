@@ -24,7 +24,7 @@
 
 .method public static main()I
   .limit locals 3
-  .limit stack 2
+  .limit stack 3
 
   
   ;; int arg = readInt ();
@@ -77,7 +77,7 @@
   ;; printInt (ret);
   iload_1
   invokestatic Runtime/printInt(I)V
-  pop
+  nop
   
   ;; return 0;
   iconst_0
