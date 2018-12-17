@@ -6,13 +6,13 @@ public class Interpreter {
   // Signature
   final Map<String,Exp> sig  = new TreeMap();
 
-  // Strategy
-  final boolean strategy;
+  // Strategy CBV / CBN
+  final Strategy strategy; //type
 
   // Control debug printing.
   final boolean debug = false;
 
-  public Interpreter (boolean strategy) {
+  public Interpreter (Strategy strategy) { // type
     this.strategy = strategy;
   }
 
@@ -55,28 +55,33 @@ public class Interpreter {
       return null;
     }
   }
+//DONE
 
+//예외처리를 어케 해줄지? 근데 예외가 왜 들어가는 거져..
   public class EvalVisitor implements Exp.Visitor<Value,Environment>
   {
     // variable
     public Value visit(Fun.Absyn.EVar p, Environment env)
     {
-      todo("identifier");
-      return null;
+      Value v = env.lookup(p.ident_); //local environment 
+      if(v!=null){ //
+        return v.apply(v).value;
+      }
+      else{ // global signature 
+        Exp e = sig.get(p.ident_);
+      }
     }
 
     // literal
     public Value visit(Fun.Absyn.EInt p, Environment env)
     {
-      todo("literal");
-      return null;
+      return new VInt(p.integer_);
     }
 
     // lambda
     public Value visit(Fun.Absyn.EAbs p, Environment env)
     {
-      todo("lambda");
-      return null;
+      return new VFun(p.ident_, p.exp_, env);
     }
 
     // application
@@ -89,38 +94,35 @@ public class Interpreter {
     // plus
     public Value visit(Fun.Absyn.EAdd p, Environment env)
     {
-      // p.exp_1.accept(new EvalVisitor(), env);
-      // p.exp_2.accept(new EvalVisitor(), env);
-      todo("plus");
-      return null;
+      Value v1 =  p.exp_1.accept(new EvalVisitor(), env);
+      Value v2 = p.exp_2.accept(new EvalVisitor(), env);
+      return new VInt(v1.intValue() + v2.intValue());
     }
 
     // minus
     public Value visit(Fun.Absyn.ESub p, Environment env)
     {
-      // p.exp_1.accept(new EvalVisitor(), env);
-      // p.exp_2.accept(new EvalVisitor(), env);
-      todo("minus");
-      return null;
+      Value v1 =  p.exp_1.accept(new EvalVisitor(), env);
+      Value v2 = p.exp_2.accept(new EvalVisitor(), env);
+      return new VInt(v1.intValue() - v2.intValue());
     }
 
     // less-than
     public Value visit(Fun.Absyn.ELt p, Environment env)
     {
-      // p.exp_1.accept(new EvalVisitor(), env);
-      // p.exp_2.accept(new EvalVisitor(), env);
-      todo("less-than");
-      return null;
+      Value v1 =  p.exp_1.accept(new EvalVisitor(), env);
+      Value v2 = p.exp_2.accept(new EvalVisitor(), env);
+      return new VInt(v1.intValue() < v2.intValue() ? 1 : 0);
+  
     }
 
-    // if
+    // if else
     public Value visit(Fun.Absyn.EIf p, Environment env)
     {
-      // p.exp_1.accept(new EvalVisitor(), env);
-      // p.exp_2.accept(new EvalVisitor(), env);
-      // p.exp_3.accept(new EvalVisitor(), env);
-      todo("if");
-      return null;
+      Value vCon =  p.exp_1.accept(new EvalVisitor(), env);
+      if(vCon.intValue()!=0) return p.exp_2.accept(new EvalVisitor(), env);
+      else     return p.exp_3.accept(new EvalVisitor(), env);
+ 
     }
   }
 
@@ -145,7 +147,7 @@ public class Interpreter {
   class Extend extends Environment {
     final Environment env;
     final String y;
-    final Entry entry;
+    final Entry entry; //call by name ???
 
     Extend (String y, Entry entry, Environment env) {
       this.env = env;
@@ -157,7 +159,6 @@ public class Interpreter {
       else return env.lookup(x);
     }
   }
-
 
   // Environment entries ////////////////////////////////////////////////
 
@@ -187,7 +188,7 @@ public class Interpreter {
 
   abstract class Value {
     abstract public int intValue();
-    abstract public Value apply(Entry e);
+    abstract public Value apply(Entry e); // Entry -> Value
   }
 
   // Numeric values
@@ -205,7 +206,7 @@ public class Interpreter {
     }
   }
 
-  // Function values
+  // Function values //VClos
 
   class VFun extends Value {
     final String x;
