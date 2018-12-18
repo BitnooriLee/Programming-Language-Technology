@@ -64,11 +64,17 @@ public class Interpreter {
     public Value visit(Fun.Absyn.EVar p, Environment env)
     {
       Value v = env.lookup(p.ident_); //local environment 
-      if(v!=null){ //
-        return v.apply(v).value;
+      
+      if(v!=null){ 
+        return v;
+        //return v.apply(v).value; 
       }
       else{ // global signature 
         Exp e = sig.get(p.ident_);
+				if(e==null)
+					throw new RuntimeException("unbound variable " + p.ident_);
+				return e.accept(new EvalVisitor(), new Empty());
+
       }
     }
 
@@ -87,8 +93,16 @@ public class Interpreter {
     // application
     public Value visit(Fun.Absyn.EApp p, Environment env)
     {
-      todo("application");
-      return null;
+      Value fClos = p.exp_1.accept(new EvalVisitor(), env);
+      Value v;
+      if(strategy==Strategy.CallByName){
+          String funName = ((VFun)fClos).getString();
+          v = new VFun(funName,p.exp_2,env);
+      } else{
+          v = p.exp_2.accept(new EvalVisitor(), env);
+      }
+        return v;
+      //return v.apply(v) :TODO 
     }
 
     // plus
@@ -217,6 +231,10 @@ public class Interpreter {
       this.x = x;
       this.body = body;
       this.env = env;
+    }
+
+    public String getString(){
+      return x;
     }
 
     public int intValue() {
