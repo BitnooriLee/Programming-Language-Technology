@@ -66,7 +66,7 @@ public class Interpreter {
       Value v = env.lookup(p.ident_); //local environment 
       
       if(v!=null){ 
-        return v;
+        return v.getValue();
         //return v.apply(v).value; 
       }
       else{ // global signature 
@@ -101,7 +101,7 @@ public class Interpreter {
       } else{
           v = p.exp_2.accept(new EvalVisitor(), env);
       }
-        return v;
+        return v.getValue();
       //return v.apply(v) :TODO 
     }
 
@@ -134,8 +134,10 @@ public class Interpreter {
     public Value visit(Fun.Absyn.EIf p, Environment env)
     {
       Value vCon =  p.exp_1.accept(new EvalVisitor(), env);
-      if(vCon.intValue()!=0) return p.exp_2.accept(new EvalVisitor(), env);
-      else     return p.exp_3.accept(new EvalVisitor(), env);
+      if(vCon.intValue()!=0) 
+        return p.exp_2.accept(new EvalVisitor(), env);
+      else     
+        return p.exp_3.accept(new EvalVisitor(), env);
  
     }
   }
@@ -203,6 +205,7 @@ public class Interpreter {
   abstract class Value {
     abstract public int intValue();
     abstract public Value apply(Entry e); // Entry -> Value
+    abstract public Value getValue();
   }
 
   // Numeric values
@@ -218,6 +221,12 @@ public class Interpreter {
     public Value apply (Entry e) {
       throw new RuntimeException ("cannot apply integer value to argument");
     }
+
+		@Override
+		public Value getValue() {
+			return this;
+		}
+
   }
 
   // Function values //VClos
@@ -236,6 +245,11 @@ public class Interpreter {
     public String getString(){
       return x;
     }
+
+    @Override
+		public Value getValue() {
+			return body.accept (new EvalVisitor(), env);
+		}
 
     public int intValue() {
       throw new RuntimeException ("VFun.intValue() is not possible");
