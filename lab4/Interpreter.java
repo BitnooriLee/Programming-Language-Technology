@@ -66,15 +66,14 @@ public class Interpreter {
       Value v = env.lookup(p.ident_); //local environment 
       
       if(v!=null){ 
-        return v.getValue();
+        return v.apply(v);
         //return v.apply(v).value; 
       }
       else{ // global signature 
         Exp e = sig.get(p.ident_);
 				if(e==null)
-					throw new RuntimeException("unbound variable " + p.ident_);
+					throw new RuntimeException("unbound variable " + p.ident_+"here1");
 				return e.accept(new EvalVisitor(), new Empty());
-
       }
     }
 
@@ -101,7 +100,7 @@ public class Interpreter {
       } else{
           v = p.exp_2.accept(new EvalVisitor(), env);
       }
-        return v.getValue();
+        return fClos.apply(v);
       //return v.apply(v) :TODO 
     }
 
@@ -156,22 +155,23 @@ public class Interpreter {
 
   class Empty extends Environment {
     Value lookup (String x) {
-      throw new RuntimeException ("Unbound variable: " + x);
+      return null;
+      //throw new RuntimeException ("Unbound variable: " + x+  "here2");
     }
   }
 
   class Extend extends Environment {
     final Environment env;
     final String y;
-    final Entry entry; //call by name ???
+    final Value v; //call by name ???
 
-    Extend (String y, Entry entry, Environment env) {
+    Extend (String y, Value v, Environment env) {
       this.env = env;
       this.y = y;
-      this.entry = entry;
+      this.v= v;
     }
     Value lookup (String x) {
-      if (x.equals(y)) return entry.value();
+      if (x.equals(y)) return v;
       else return env.lookup(x);
     }
   }
@@ -204,7 +204,7 @@ public class Interpreter {
 
   abstract class Value {
     abstract public int intValue();
-    abstract public Value apply(Entry e); // Entry -> Value
+    abstract public Value apply(Value v); // Entry -> Value
     abstract public Value getValue();
   }
 
@@ -218,7 +218,7 @@ public class Interpreter {
     public int intValue() {
       return val;
     }
-    public Value apply (Entry e) {
+    public Value apply (Value e) {
       throw new RuntimeException ("cannot apply integer value to argument");
     }
 
@@ -254,8 +254,8 @@ public class Interpreter {
     public int intValue() {
       throw new RuntimeException ("VFun.intValue() is not possible");
     }
-    public Value apply (Entry e) {
-      return body.accept (new EvalVisitor(), new Extend(x, e, env));
+    public Value apply (Value v) {
+      return body.accept (new EvalVisitor(), new Extend(x, v, env));
     }
   }
 
