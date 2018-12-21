@@ -66,14 +66,16 @@ public class Interpreter {
       Value v = env.lookup(p.ident_); //local environment 
       
       if(v!=null){ 
-        return v.apply(v);
-        //return v.apply(v).value; 
+        if(strategy==Strategy.CallByName) return v.apply(v);
+        else return v;
+        
       }
       else{ // global signature 
         Exp e = sig.get(p.ident_);
-				if(e==null)
-					throw new RuntimeException("unbound variable " + p.ident_+"here1");
-				return e.accept(new EvalVisitor(), new Empty());
+				if(e!=null)
+          return e.accept(new EvalVisitor(), new Empty());
+				throw new RuntimeException("unbound variable " + p.ident_+"here1");
+				
       }
     }
 
@@ -101,7 +103,7 @@ public class Interpreter {
           v = p.exp_2.accept(new EvalVisitor(), env);
       }
         return fClos.apply(v);
-      //return v.apply(v) :TODO 
+      
     }
 
     // plus
@@ -205,7 +207,6 @@ public class Interpreter {
   abstract class Value {
     abstract public int intValue();
     abstract public Value apply(Value v); // Entry -> Value
-    abstract public Value getValue();
   }
 
   // Numeric values
@@ -221,16 +222,9 @@ public class Interpreter {
     public Value apply (Value e) {
       throw new RuntimeException ("cannot apply integer value to argument");
     }
-
-		@Override
-		public Value getValue() {
-			return this;
-		}
-
   }
 
   // Function values //VClos
-
   class VFun extends Value {
     final String x;
     final Exp body;
@@ -245,11 +239,6 @@ public class Interpreter {
     public String getString(){
       return x;
     }
-
-    @Override
-		public Value getValue() {
-			return body.accept (new EvalVisitor(), env);
-		}
 
     public int intValue() {
       throw new RuntimeException ("VFun.intValue() is not possible");
