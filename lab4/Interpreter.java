@@ -57,7 +57,6 @@ public class Interpreter {
   }
 //DONE
 
-//예외처리를 어케 해줄지? 근데 예외가 왜 들어가는 거져..
   public class EvalVisitor implements Exp.Visitor<Value,Environment>
   {
     // variable
@@ -102,8 +101,7 @@ public class Interpreter {
       } else{
           v = p.exp_2.accept(new EvalVisitor(), env);
       }
-        return fClos.apply(v);
-      
+        return fClos.apply(v);  
     }
 
     // plus
@@ -158,7 +156,6 @@ public class Interpreter {
   class Empty extends Environment {
     Value lookup (String x) {
       return null;
-      //throw new RuntimeException ("Unbound variable: " + x+  "here2");
     }
   }
 
