@@ -66,15 +66,13 @@ public class Interpreter {
       
       if(v!=null){ 
         if(strategy==Strategy.CallByName) return v.apply(v);
-        else return v;
-        
+        else return v;     
       }
       else{ // global signature 
         Exp e = sig.get(p.ident_);
 				if(e!=null)
           return e.accept(new EvalVisitor(), new Empty());
-				throw new RuntimeException("unbound variable " + p.ident_+"here1");
-				
+				throw new RuntimeException("unbound variable " + p.ident_+"here1");	
       }
     }
 
@@ -98,16 +96,15 @@ public class Interpreter {
       if(strategy==Strategy.CallByName){
           String funName = ((VFun)fClos).getString();
           v = new VFun(funName,p.exp_2,env);
-      } else{
-          v = p.exp_2.accept(new EvalVisitor(), env);
-      }
+      } else v = p.exp_2.accept(new EvalVisitor(), env);
+    
         return fClos.apply(v);  
     }
 
     // plus
     public Value visit(Fun.Absyn.EAdd p, Environment env)
     {
-      Value v1 =  p.exp_1.accept(new EvalVisitor(), env);
+      Value v1 = p.exp_1.accept(new EvalVisitor(), env);
       Value v2 = p.exp_2.accept(new EvalVisitor(), env);
       return new VInt(v1.intValue() + v2.intValue());
     }
@@ -115,7 +112,7 @@ public class Interpreter {
     // minus
     public Value visit(Fun.Absyn.ESub p, Environment env)
     {
-      Value v1 =  p.exp_1.accept(new EvalVisitor(), env);
+      Value v1 = p.exp_1.accept(new EvalVisitor(), env);
       Value v2 = p.exp_2.accept(new EvalVisitor(), env);
       return new VInt(v1.intValue() - v2.intValue());
     }
@@ -123,7 +120,7 @@ public class Interpreter {
     // less-than
     public Value visit(Fun.Absyn.ELt p, Environment env)
     {
-      Value v1 =  p.exp_1.accept(new EvalVisitor(), env);
+      Value v1 = p.exp_1.accept(new EvalVisitor(), env);
       Value v2 = p.exp_2.accept(new EvalVisitor(), env);
       return new VInt(v1.intValue() < v2.intValue() ? 1 : 0);
   
@@ -133,11 +130,8 @@ public class Interpreter {
     public Value visit(Fun.Absyn.EIf p, Environment env)
     {
       Value vCon =  p.exp_1.accept(new EvalVisitor(), env);
-      if(vCon.intValue()!=0) 
-        return p.exp_2.accept(new EvalVisitor(), env);
-      else     
-        return p.exp_3.accept(new EvalVisitor(), env);
- 
+      if(vCon.intValue()!=0) return p.exp_2.accept(new EvalVisitor(), env);
+      else return p.exp_3.accept(new EvalVisitor(), env);
     }
   }
 
@@ -162,7 +156,7 @@ public class Interpreter {
   class Extend extends Environment {
     final Environment env;
     final String y;
-    final Value v; //call by name ???
+    final Value v; //call by name
 
     Extend (String y, Value v, Environment env) {
       this.env = env;
