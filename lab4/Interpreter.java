@@ -87,7 +87,6 @@ public class Interpreter {
     {
       return new VFun(p.ident_, p.exp_, env);
     }
-
     // application
     public Value visit(Fun.Absyn.EApp p, Environment env)
     {
@@ -100,7 +99,6 @@ public class Interpreter {
     
         return fClos.apply(v);  
     }
-
     // plus
     public Value visit(Fun.Absyn.EAdd p, Environment env)
     {
