@@ -49,7 +49,6 @@ public class Interpreter {
 
       Collections.reverse(p.listident_);
       for (String x: p.listident_) e = new EAbs(x, e);
-
       // Add to signature
       sig.put(p.ident_, e);
       return null;
@@ -121,7 +120,6 @@ public class Interpreter {
       Value v1 = p.exp_1.accept(new EvalVisitor(), env);
       Value v2 = p.exp_2.accept(new EvalVisitor(), env);
       return new VInt(v1.intValue() < v2.intValue() ? 1 : 0);
-  
     }
 
     // if else
@@ -159,7 +157,7 @@ public class Interpreter {
     Extend (String y, Value v, Environment env) {
       this.env = env;
       this.y = y;
-      this.v= v;
+      this.v = v;
     }
     Value lookup (String x) {
       if (x.equals(y)) return v;
@@ -228,7 +226,6 @@ public class Interpreter {
     public String getString(){
       return x;
     }
-
     public int intValue() {
       throw new RuntimeException ("VFun.intValue() is not possible");
     }
