@@ -176,10 +176,11 @@ public class Interpreter {
     ValueEntry (Value v) {
       this.v = v;
     }
-    Value value() { return v; }
+    Value value() { 
+      return v; }
   }
 
-  class ClosEntry extends Entry {
+  /*class ClosEntry extends Entry {
     final Exp exp;
     final Environment env;
     ClosEntry (Exp exp, Environment env) {
@@ -187,7 +188,7 @@ public class Interpreter {
       this.env = env;
     }
     Value value() { return exp.accept (new EvalVisitor(), env); }
-  }
+  }*/
 
   // Value /////////////////////////////////////////////////////////////
 
