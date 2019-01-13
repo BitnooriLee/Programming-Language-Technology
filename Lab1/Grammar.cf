@@ -6,7 +6,6 @@ terminator Def "" ;
 
 -- Definitions
 DefFun. 	Def				::= TypeC Id "(" [Arg] ")" Body ;
---DefFun2. 	Def				::= TypeC Id "(" TypeC ")" ";" ;
 DefFun3. 	Def				::= TypeC [Ass]";";
 DefUsing.	Def				::= "using" QConst ";" ; --2
 DefTypedef.	Def				::= "typedef" TypeC  Id ";" ; --2
@@ -55,7 +54,7 @@ EPIncr. 		Exp14		    	::= Exp14 "++" ;
 EPDecr. 	Exp14			::= Exp14 "--" ;
 EIncr. 		Exp13			::= "++" Exp13 ;
 EDecr. 		Exp13			::= "--" Exp13 ;
-EPoint.		Exp13			::= "*" Exp13;   --2   Id??
+EPoint.		Exp13			::= "*" Exp13;  
 ENot.		Exp13			::= "!" Exp13;
 ERem	. 	Exp12			::= Exp12 "%" Exp13 ;
 ETimes. 	Exp12			::= Exp12 "*" Exp13 ;
@@ -100,7 +99,6 @@ Tdouble. 	Type		::= "double" ;
 Tint. 		Type		::= "int" ;
 Tvoid. 		Type		::= "void" ;
 Tchar.		Type		::= "char" ;
---Tstring.		Type	    	::= Id ;  --2
 TQconst. 	Type		::= QConst ;
 
 
